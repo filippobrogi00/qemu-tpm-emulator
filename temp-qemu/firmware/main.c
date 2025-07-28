@@ -24,7 +24,11 @@ void main(void) {
 
     // Read result
     uint32_t rand_val = TPM2_RANDOM_REG;
+    TPM2_CMD_REG = TPM2_CMD_GEN_RSA;
 
+    delay(500); // Wait for RSA key generation
+
+    uint32_t key_generated = TPM2_DATA_REG;
     // Optional: infinite loop with value (good for stepping in debugger)
     while (1) {
         (void)rand_val;
