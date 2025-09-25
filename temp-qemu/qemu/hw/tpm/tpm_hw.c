@@ -15,6 +15,9 @@ static void tpm2_generate_random(TPM2State *s) {
     RAND_bytes(s->random_data, sizeof(s->random_data));
 }
 
+
+
+
 static void tpm2_generate_rsa_key(TPM2State *s) {
     if (s->rsa_key) {
         RSA_free(s->rsa_key);
