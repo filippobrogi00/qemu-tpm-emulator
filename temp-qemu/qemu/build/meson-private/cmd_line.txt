@@ -1,0 +1,7 @@
+[options]
+docs = disabled
+plugins = true
+
+[properties]
+native_file = ['/root/group7-TPM/temp-qemu/qemu/build/config-meson.cross']
+

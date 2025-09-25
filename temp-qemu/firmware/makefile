@@ -32,6 +32,42 @@ all: $(OBJS) link
 # Compile and link with debug information
 debug: $(OBJS_DBG) link_dbg
 
+
+
+#init make to initialize dependencies
+init:
+	@echo "Installing required packages..."
+	sudo apt update
+	sudo apt install -y \
+		build-essential \
+		python3 \
+		python3-pip \
+		git \
+		flex \
+		bison \
+		libglib2.0-dev \
+		libpixman-1-dev \
+		zlib1g-dev \
+		libfdt-dev \
+		libtool \
+		autoconf \
+		automake \
+		pkg-config \
+		libsdl2-dev \
+		libsdl2-image-dev \
+		ninja-build \
+		python3-sphinx \
+		gcc-arm-linux-gnueabi \
+		gcc-arm-none-eabi \
+		gdb-multiarch \
+		virt-what \
+		openssl \
+		libssl-dev
+	pip3 install tomli
+
+
+
+
 # Run QEMU
 qemu_start:
 	$(qemu_exec)
