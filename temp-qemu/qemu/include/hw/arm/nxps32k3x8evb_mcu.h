@@ -29,5 +29,4 @@ struct NXPS32K3X8EVB_MCUState
     Clock *sysclk;
 
     // UART
-    S32K3x8UartState uart;
 };
