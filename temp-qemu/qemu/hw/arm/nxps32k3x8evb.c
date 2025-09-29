@@ -8,6 +8,8 @@
 #include "system/system.h"      /* instead of sysemu/sysemu */
 //#include "exec/address-spaces.h"
 #include "qom/object.h"
+#include "hw/char/nxps32k3x8evb_uart.h"
+
 
 #include "hw/arm/nxps32k3x8evb.h"
 #include "hw/arm/nxps32k3x8evb_mcu.h"
@@ -35,6 +37,26 @@ static void nxps32k3x8evb_init(MachineState *machine){
 
     if(machine->kernel_filename)
         armv7m_load_kernel(ARM_CPU(first_cpu), machine->kernel_filename, 0, s->mcu.pflash_size);
+
+    //UART Code declaration:
+     DeviceState *nvic, *uart;
+    SysBusDevice *sbd;
+    Object *soc_container;
+
+    nvic = (DeviceState *)&s->mcu.cpu;
+    soc_container = OBJECT(&s->mcu);
+
+    /* implementing only LPUART01 */
+    uart = qdev_new("nxp_uart");
+    object_property_add_child(soc_container, "uart", OBJECT(uart));
+    sbd = SYS_BUS_DEVICE(uart);
+    qdev_prop_set_chr(uart, "chardev", serial_hd(0));
+    sysbus_realize(sbd, &error_fatal);
+    sysbus_mmio_map(sbd, 0, LPUART_BASE_ADDRESS);
+    memory_region_set_size(sysbus_mmio_get_region(sbd, 0), UART_SIZE);
+    sysbus_connect_irq(sbd, 0, qdev_get_gpio_in(nvic, LPUART0_TRANSMIT_INTERRUPT));
+
+
 }
 
 // Define how this machine behaves

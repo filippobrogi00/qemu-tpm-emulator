@@ -51,4 +51,17 @@
 #define SRAM1               (SRAM_BASE_ADDRESS + SRAM1_OFFSET)
 #define SRAM2               (SRAM_BASE_ADDRESS + SRAM2_OFFSET)
 
+//UART
+#define LPUART_BASE_ADDRESS 0x40328000
+#define LPUART0_OFFSET      (0    * 1024)
+
+#define LPUART0 (LPUART_BASE_ADDRESS + LPUART0_OFFSET)
+
+#define UART_SIZE           (16    * 1024)
+
+#define LPUART0_TRANSMIT_INTERRUPT      141
+
+
+
+
 #endif
