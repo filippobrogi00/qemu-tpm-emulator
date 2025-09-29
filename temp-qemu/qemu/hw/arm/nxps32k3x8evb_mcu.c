@@ -10,8 +10,7 @@
 // this include the TPM
 #include "tpm/tpm2_device.h"
 
-// this include the UART
-#include "hw/char/S32K_uart.h"
+
 
 #include "hw/arm/nxps32k3x8evb_mcu.h"
 #include "hw/arm/nxps32k3x8evb.h"
@@ -26,9 +25,7 @@
 #define NXPS32K3X8EVB_TPM_SIZE TPM_SIZE
 
 /* poi vediamo */
-#define USART_ADDRESS (0x40328000UL)
-#define USART_SIZE (0x400UL)
-#define NXP_USART_IRQ_DEFAULT (141)
+
 
 // This function has the goal of initialize a single instance of the device class
 static void nxps32k3x8evb_mcu_init(Object *obj)
@@ -120,19 +117,6 @@ static void nxps32k3x8evb_mcu_realize(DeviceState *dev_mcu, Error **errp)
 
     memory_region_add_subregion_overlap(&s->container, 0, s->board_memory, -1);
 
-    // =========  ADD  USART  =========
-    SysBusDevice *busdev = SYS_BUS_DEVICE(s->uart);
-    dev = DEVICE(&(s->uart));
-    // declare the UART new device type
-    qdev_prop_set_chr(dev, "chardev", serial_hd(0));
-    if (!sysbus_realize(SYS_BUS_DEVICE(&s->uart), errp))
-    {
-        return;
-    }
-    // Map the UART peripheral to memory
-    sysbus_mmio_map(busdev, 0, USART_ADDRESS);
-    // initialize the IRQ table of the CPU with the correct interrupt handler
-    sysbus_connect_irq(busdev, 0, qdev_get_gpio_in(armv7m, NXP_USART_IRQ_DEFAULT));
 
     // ========= ADD  TPM 2.0 =========
     DeviceState *tpm = qdev_new("tpm2");
