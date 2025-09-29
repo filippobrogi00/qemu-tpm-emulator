@@ -12,8 +12,8 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HW_PL011_H
-#define HW_PL011_H
+#ifndef HW_NXP_UART_H
+#define HW_NXP_UART_H
 
 #include "hw/sysbus.h"
 #include "chardev/char-fe.h"
@@ -23,7 +23,7 @@
 OBJECT_DECLARE_SIMPLE_TYPE(NXP_UART_STATE, NXP_UART)
 
 /* Depth of UART FIFO in bytes, when FIFO mode is enabled (else depth == 1) */
-#define PL011_FIFO_DEPTH 16
+#define NXP_UART_FIFO_DEPTH 16
 
 struct NXP_UART_STATE {
     SysBusDevice parent_obj;
@@ -36,7 +36,7 @@ struct NXP_UART_STATE {
     uint32_t dmacr;
     uint32_t int_enabled;
     uint32_t int_level;
-    uint32_t read_fifo[PL011_FIFO_DEPTH];
+    uint32_t read_fifo[NXP_UART_FIFO_DEPTH];
     uint32_t ilpr;
     uint32_t ibrd;
     uint32_t fbrd;
