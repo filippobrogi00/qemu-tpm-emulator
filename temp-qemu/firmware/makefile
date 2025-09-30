@@ -15,6 +15,7 @@ DEBUG_FLAGS = -g -s -S
 ld_script = linker
 startup = startup
 main = main
+uart = uart
 
 
 # QEMU Configuration
@@ -22,8 +23,8 @@ QEMU_FLAGS = -M nxps32k3x8evb -nographic
 qemu_exec = ../qemu/build/qemu-system-arm $(QEMU_FLAGS) -kernel $(main).elf
 
 # Object files
-OBJS = $(startup).o $(main).o
-OBJS_DBG = $(startup)_dbg.o $(main)_dbg.o
+OBJS = $(startup).o $(main).o $(uart).o
+OBJS_DBG = $(startup)_dbg.o $(main)_dbg.o $(uart)_dbg.o
 
 # Rules
 # Compile and link

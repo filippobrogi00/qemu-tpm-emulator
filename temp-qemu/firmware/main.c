@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include "uart.h"
+#include <stdio.h>
 
 #define TPM2_BASE          0xF0000000
 #define TPM2_CTRL_REG      (*(volatile uint32_t *)(TPM2_BASE + 0x00))  // same
@@ -17,6 +19,11 @@ void delay() {
 }
 
 void main(void) {
+    UART_init();
+    char message[] = "TPM2 Example Start\n";
+    UART_printf(message);
+
+
     // Trigger random number generation
     TPM2_CMD_REG = TPM2_CMD_GEN_RANDOM;
 
