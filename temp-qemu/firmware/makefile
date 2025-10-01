@@ -3,10 +3,14 @@ ARM_GNU ?= arm-none-eabi
 
 # Compiler flags
 AARCH = -mcpu=cortex-m7
-CFLAGS = -c -Wall $(AARCH) -mthumb -g
+CFLAGS = -c -Wall $(AARCH) -mthumb
+DEBUG_FLAGS = -g3 -O0
+
+# Assembler flags
 ASFLAGS = $(AARCH)
+
+# Linker flags
 LDFLAGS = -T $(ld_script).ld
-DEBUG_FLAGS = -g -s -S
 
 # Default target
 .DEFAULT_GOAL := all
@@ -16,7 +20,6 @@ ld_script = linker
 startup = startup
 main = main
 uart = uart
-
 
 # QEMU Configuration
 QEMU_FLAGS = -M nxps32k3x8evb -nographic
@@ -32,8 +35,6 @@ all: $(OBJS) link
 
 # Compile and link with debug information
 debug: $(OBJS_DBG) link_dbg
-
-
 
 #init make to initialize dependencies
 init:
@@ -66,9 +67,6 @@ init:
 		libssl-dev
 	pip3 install tomli
 
-
-
-
 # Run QEMU
 qemu_start:
 	$(qemu_exec)
@@ -84,7 +82,7 @@ qemu_debug:
 
 # Compile all the .c files to _dbg.o files (debug information)
 %_dbg.o: %.c
-	$(ARM_GNU)-gcc $(DEBUG_FLAGS) $(CFLAGS) $< -o $@
+	$(ARM_GNU)-gcc $(CFLAGS) $(DEBUG_FLAGS) $< -o $@
 
 # Assemble all the .s files to .o files
 %.o: %.s
@@ -92,7 +90,7 @@ qemu_debug:
 
 # Assemble all the .s files to _dbg.o files (debug information)
 %_dbg.o: %.s
-	$(ARM_GNU)-as $(ASFLAGS) $(DEBUG_FLAGS) $< -o $@
+	$(ARM_GNU)-as $(ASFLAGS) -g $< -o $@
 
 # Linking
 # Link all the files defined in OBJS (.o files) to the main.elf file

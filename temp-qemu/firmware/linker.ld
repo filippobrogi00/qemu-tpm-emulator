@@ -22,12 +22,16 @@ SECTIONS
     /* bss section, uninitialized variables */
     .bss : {
         *(.bss*)
+        end = .;
+        PROVIDE(end = end);
     } > SRAM
 
     /* stack section */
     /* The stack is placed at the end of the RAM */
     stack_top = ORIGIN(SRAM) + LENGTH(SRAM);
 
+    _end = .;
+    PROVIDE(end = .);
 }
 
 /* this should be changed..*/

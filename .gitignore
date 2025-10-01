@@ -1,5 +1,5 @@
 .cache/*
 *.vim
 **/build/
-*.pyc
+**/*.pyc
 .vscode/

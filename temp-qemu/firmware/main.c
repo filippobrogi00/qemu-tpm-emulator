@@ -18,7 +18,7 @@ void delay() {
     for (volatile int i = 0; i < 100000; i++);
 }
 
-void main(void) {
+int main(void) {
     UART_init();
     char message[] = "[UART]TPM2 Example Start\n";
     UART_printf(message);
@@ -32,9 +32,7 @@ void main(void) {
     // Read result
     uint32_t rand_val = TPM2_RANDOM_REG;
 
-    char buffer[50];
-    sprintf(buffer, "Random Value: %u\n", rand_val);
-    UART_printf(buffer);
+    UART_printf("Random Value: %u\n", rand_val);
 
 
 
@@ -43,10 +41,16 @@ void main(void) {
     delay(500); // Wait for RSA key generation
 
     uint32_t key_generated = TPM2_DATA_REG;
-    sprintf(buffer, "RSA KEY GEN: %u\n", key_generated);
-    UART_printf(buffer);
+    UART_printf("RSA KEY GEN: %u\n", key_generated);
+
+    char text[100];
+    UART_printf("Enter message to encrypt:\n>> ");
+    UART_gets(text, sizeof(text));
+    UART_printf("\nEncrypting message...\n %s\n", text);
+
     // Optional: infinite loop with value (good for stepping in debugger)
     while (1) {
         (void)rand_val;
     }
+    return 0;
 }
