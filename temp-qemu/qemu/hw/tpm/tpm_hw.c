@@ -121,6 +121,7 @@ static void tpm2_init(Object *obj) {
     memory_region_init_io(&s->mmio, obj, &tpm2_mmio_ops, s, TYPE_TPM2, 0x20);
     sysbus_init_mmio(SYS_BUS_DEVICE(obj), &s->mmio);
 
+    Error *err = NULL;
     //Non-volatile storage initialization
 
       /* --- NV bank: private RAM --- */
