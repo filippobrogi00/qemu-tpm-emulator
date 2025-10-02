@@ -7,6 +7,8 @@
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
+#include "qapi/error.h"   // <-- for Error, error_setg, error_propagate, etc.
+
 
 #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ## __VA_ARGS__)
 
@@ -117,10 +119,11 @@ static const VMStateDescription vmstate_tpm2 = {
 
 static void tpm2_init(Object *obj) {
     TPM2State *s = TPM2(obj);
+    /*
     sysbus_init_irq(SYS_BUS_DEVICE(obj), &s->irq);
     memory_region_init_io(&s->mmio, obj, &tpm2_mmio_ops, s, TYPE_TPM2, 0x20);
     sysbus_init_mmio(SYS_BUS_DEVICE(obj), &s->mmio);
-
+    */
     //Init is just for default values
 
 
