@@ -121,35 +121,53 @@ static void tpm2_init(Object *obj) {
     memory_region_init_io(&s->mmio, obj, &tpm2_mmio_ops, s, TYPE_TPM2, 0x20);
     sysbus_init_mmio(SYS_BUS_DEVICE(obj), &s->mmio);
 
-    Error *err = NULL;
-    //Non-volatile storage initialization
+    //Init is just for default values
 
-      /* --- NV bank: private RAM --- */
-    memory_region_init_ram(&s->nv_bank_mem, OBJECT(s), "tpm2.nvbank",
+
+}
+
+//Attention: la ram memory deve essere allocata nella realize
+
+static void tpm2_realize(DeviceState *dev, Error **errp)
+{
+    TPM2State *s = TPM2(dev);
+    Error *err = NULL;
+
+    /* IRQ + MMIO window (guest-visible) */
+    sysbus_init_irq(SYS_BUS_DEVICE(dev), &s->irq);
+    memory_region_init_io(&s->mmio, OBJECT(dev), &tpm2_mmio_ops, s, TYPE_TPM2, 0x20);
+    sysbus_init_mmio(SYS_BUS_DEVICE(dev), &s->mmio);
+
+    /* --- NV bank: private RAM (internal, not mapped to system bus) --- */
+    memory_region_init_ram(&s->nv_bank_mem, OBJECT(dev), "tpm2.nvbank",
                            TPM2_NVSTORAGE_SIZE, &err);
     if (err) { error_propagate(errp, err); return; }
 
     s->nv_bank_ptr  = memory_region_get_ram_ptr(&s->nv_bank_mem);
     s->nv_bank_size = TPM2_NVSTORAGE_SIZE;
-    memset(s->nv_bank_ptr, 0, s->nv_bank_size); //Todo: Check if this is a secure functio. I don't think so.
+
+    /* Zeroing a fresh buffer is fine with memset (secure wipe is a different topic) */
+    memset(s->nv_bank_ptr, 0, s->nv_bank_size);
     TPM2_LOG("[DEBUG]NV bank initialized: %u bytes at %p\n", s->nv_bank_size, s->nv_bank_ptr);
-    /* In-RAM map: owns NvEntry*; frees them on destroy */
-    s->nv_map   = g_hash_table_new_full(g_direct_hash, g_direct_equal,
-                                        NULL, (GDestroyNotify)g_free /* or nventry_free */);
+
+    /* In-RAM index */
+    s->nv_map = g_hash_table_new_full(g_direct_hash, g_direct_equal,
+                                      NULL, (GDestroyNotify)g_free /* or nventry_free */);
     s->nv_count = 0;
     s->nv_dirty = false;
     TPM2_LOG("[DEBUG]NV map initialized\n");
 
-
-
-
 }
+
+
 
 static void tpm2_class_init(ObjectClass *klass, void *data) {
     DeviceClass *dc = DEVICE_CLASS(klass);
     device_class_set_legacy_reset(dc, tpm2_reset);
     dc->vmsd = &vmstate_tpm2;
     dc->desc = "TPM 2.0 custom device";  // <-- This must be set!
+    dc->realize  = tpm2_realize;     // <-- added realize function
+
 }
 
 static const TypeInfo tpm2_info = {
