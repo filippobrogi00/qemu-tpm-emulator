@@ -61,7 +61,7 @@ typedef struct TPMS_CLOCK_INFO {
 typedef struct TPMS_TIME_INFO {
     uint64_t        time;       /* implementation-defined time base (e.g., ms) */
     TPMS_CLOCK_INFO clockInfo;
-} TPMS_TIME_INFO
+} TPMS_TIME_INFO;
 
 
 /******************************
