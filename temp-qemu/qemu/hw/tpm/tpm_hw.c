@@ -131,13 +131,13 @@ static void tpm2_init(Object *obj) {
     s->nv_bank_ptr  = memory_region_get_ram_ptr(&s->nv_bank_mem);
     s->nv_bank_size = TPM2_NVSTORAGE_SIZE;
     memset(s->nv_bank_ptr, 0, s->nv_bank_size); //Todo: Check if this is a secure functio. I don't think so.
-
+    TPM2_LOG("[DEBUG]NV bank initialized: %u bytes at %p\n", s->nv_bank_size, s->nv_bank_ptr);
     /* In-RAM map: owns NvEntry*; frees them on destroy */
     s->nv_map   = g_hash_table_new_full(g_direct_hash, g_direct_equal,
                                         NULL, (GDestroyNotify)g_free /* or nventry_free */);
     s->nv_count = 0;
     s->nv_dirty = false;
-
+    TPM2_LOG("[DEBUG]NV map initialized\n");
 
 
 
