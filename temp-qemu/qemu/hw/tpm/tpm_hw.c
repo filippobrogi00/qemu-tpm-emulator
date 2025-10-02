@@ -120,6 +120,28 @@ static void tpm2_init(Object *obj) {
     sysbus_init_irq(SYS_BUS_DEVICE(obj), &s->irq);
     memory_region_init_io(&s->mmio, obj, &tpm2_mmio_ops, s, TYPE_TPM2, 0x20);
     sysbus_init_mmio(SYS_BUS_DEVICE(obj), &s->mmio);
+
+    //Non-volatile storage initialization
+
+      /* --- NV bank: private RAM --- */
+    memory_region_init_ram(&s->nv_bank_mem, OBJECT(s), "tpm2.nvbank",
+                           TPM2_NVSTORAGE_SIZE, &err);
+    if (err) { error_propagate(errp, err); return; }
+
+    s->nv_bank_ptr  = memory_region_get_ram_ptr(&s->nv_bank_mem);
+    s->nv_bank_size = TPM2_NVSTORAGE_SIZE;
+    memset(s->nv_bank_ptr, 0, s->nv_bank_size); //Todo: Check if this is a secure functio. I don't think so.
+
+    /* In-RAM map: owns NvEntry*; frees them on destroy */
+    s->nv_map   = g_hash_table_new_full(g_direct_hash, g_direct_equal,
+                                        NULL, (GDestroyNotify)g_free /* or nventry_free */);
+    s->nv_count = 0;
+    s->nv_dirty = false;
+
+
+
+
+
 }
 
 static void tpm2_class_init(ObjectClass *klass, void *data) {
