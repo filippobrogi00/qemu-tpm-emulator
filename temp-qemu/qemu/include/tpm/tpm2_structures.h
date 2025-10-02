@@ -21,6 +21,9 @@ typedef struct
 #define SHA512_DIGEST_SIZE 64
 #define NULL_DIGEST_SIZE   0
 
+typedef uint8_t  TPMI_YES_NO;   /* constrained to 0x00 (NO) or 0x01 (YES) */
+
+
 typedef union
 {
 #ifdef TPM_ALG_SHA1
@@ -43,6 +46,23 @@ typedef struct
     uint16_t hashAlg; // TPMI_ALG_HASH
     TPMU_HA  digest;
 } TPMT_HA;
+
+
+
+typedef struct TPMS_CLOCK_INFO {
+    uint64_t     clock;
+    uint32_t     resetCount;
+    uint32_t     restartCount;
+    TPMI_YES_NO  safe;      /* 0 or 1 */
+    uint8_t      _pad[3];
+} TPMS_CLOCK_INFO;
+
+
+typedef struct TPMS_TIME_INFO {
+    uint64_t        time;       /* implementation-defined time base (e.g., ms) */
+    TPMS_CLOCK_INFO clockInfo;
+} TPMS_TIME_INFO
+
 
 /******************************
  * SIZED BUFFERS

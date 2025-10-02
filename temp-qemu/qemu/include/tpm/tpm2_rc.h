@@ -1,7 +1,7 @@
 #ifndef TPM_RC_H
 #define TPM_RC_H
 
-#include "TpmBaseTypes.h"
+#include "tpm2_base_types.h"
 
 /* Format/Version/Warning bits */
 #define RC_VER1 0x100 /* Format 0, TCG-defined */
