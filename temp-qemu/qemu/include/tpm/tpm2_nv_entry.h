@@ -3,7 +3,7 @@
 #include <stddef.h>
 
 /* Pull these from your TPM Part 2 header you already have */
-#include "tpm2_structures.h"   /* TPMS_NV_PUBLIC, TPMA_NV, TPM_NT_*, etc. */
+#include "tpm2_nv.h"   /* TPMS_NV_PUBLIC, TPMA_NV, TPM_NT_*, etc. */
 #include "tpm2_rc.h"
 /* Max sizes: keep modest and configurable */
 #ifndef NVENTRY_MAX_AUTH
