@@ -123,6 +123,15 @@ static void nxps32k3x8evb_mcu_realize(DeviceState *dev_mcu, Error **errp)
     SysBusDevice *sbd = SYS_BUS_DEVICE(tpm);
     // qdev_prop_set_string(tpm, "tpmdev", "tpm0"); -- Useful for swtpm
 
+
+    //realize the tpm device
+
+
+      if (!sysbus_realize_and_unref(sbd, &err)) {
+        error_propagate(errp, err);
+        return;
+    }
+
     MemoryRegion *tpm_mmio = sysbus_mmio_get_region(sbd, 0);
     if (!tpm_mmio)
     {

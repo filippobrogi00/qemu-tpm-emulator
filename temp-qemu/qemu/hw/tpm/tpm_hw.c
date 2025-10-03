@@ -136,6 +136,10 @@ static void tpm2_realize(DeviceState *dev, Error **errp)
     TPM2State *s = TPM2(dev);
     Error *err = NULL;
 
+
+
+    //Here it returns error: Cannot get MMIO region.
+    
     /* IRQ + MMIO window (guest-visible) */
     sysbus_init_irq(SYS_BUS_DEVICE(dev), &s->irq);
     memory_region_init_io(&s->mmio, OBJECT(dev), &tpm2_mmio_ops, s, TYPE_TPM2, 0x20);
