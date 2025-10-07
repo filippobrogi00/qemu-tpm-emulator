@@ -1,18 +1,12 @@
 #include "tpm/tpm2_nv.h"
 #include "tpm/tpm2_handles.h"
+#include "tpm/tpm2_device.h"
+#include "qemu/osdep.h"
+#include "qemu/log.h"
+#include "qemu/units.h"
+#include "hw/sysbus.h"
+#include <string.h>
 
-/* Request for TPM2_NV_DefineSpace */
-typedef struct {
-    TPMI_ST_COMMAND_TAG tag;      // TPM_ST_SESSIONS
-    UINT32              commandSize;
-    TPM_CC              commandCode; // TPM_CC_NV_DefineSpace
-    // Handles (marshaled separately in TPM order):
-    TPMI_RH_PROVISION   authHandle;  // TPM_RH_OWNER or TPM_RH_PLATFORM(+PP)
-    // Authorization area (if sessions present) goes here on the wire
-    // Parameters:
-    TPM2B_AUTH          auth;        // size + buffer (<= digest size of nameAlg)
-    TPM2B_NV_PUBLIC     publicInfo;  // contains TPMS_NV_PUBLIC
-} TPM2_NV_DefineSpace_Req;
 
 /* Response for TPM2_NV_DefineSpace */
 typedef struct {
@@ -20,6 +14,22 @@ typedef struct {
     UINT32 responseSize;
     TPM_RC responseCode;
 } TPM2_NV_DefineSpace_Resp;
+
+
+
+TPM_RC tpm2_nv_define_space(TPM2State *s,
+                              uint32_t authHandle,
+                              const uint8_t *authValue,
+                              uint16_t authLen,
+                              TPM_NV_INDEX nvHandle,
+                              uint16_t nvSize,
+                              uint16_t nameAlg,
+                              uint32_t attrs){
+
+
+}
+
+
 
 
 
