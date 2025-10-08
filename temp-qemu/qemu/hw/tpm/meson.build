@@ -6,6 +6,6 @@ system_ss.add(when: 'CONFIG_TPM_CRB', if_true: files('tpm_crb.c'))
 system_ss.add(when: 'CONFIG_TPM_TIS', if_true: files('tpm_ppi.c'))
 system_ss.add(when: 'CONFIG_TPM_CRB', if_true: files('tpm_ppi.c'))
 system_ss.add(when: 'CONFIG_TPM2_DEVICE', if_true: files('tpm_hw.c'))
+system_ss.add(when: 'CONFIG_TPM2_DEVICE', if_true: files('tpm_implementations/tpm2_nv.c'))
 system_ss.add(when: 'CONFIG_TPM2_DEVICE', if_true: openssl)
-
 specific_ss.add(when: 'CONFIG_TPM_SPAPR', if_true: files('tpm_spapr.c'))
