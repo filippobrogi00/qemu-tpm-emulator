@@ -2,6 +2,7 @@
 #define TPM_INTERFACE_TYPES_H
 
 #include <stdint.h>
+#include "tpm2_rc.h"
 
 /******************************
  * Introduction
@@ -366,5 +367,20 @@ typedef uint32_t TPMI_DH_CONTEXT;
 #define TPMI_ALG_CIPHER_MODE_NULL 0x0000
 /* Additional symmetric block cipher modes defined by TCG can be added here */
 /* #TPM_RC_MODE */
+
+/* Added by Mugna */
+
+typedef struct {
+    uint32_t owner;     /* TPM_RH_OWNER */
+    uint32_t platform;
+    TPM_RC responsefailcode;
+}TPMI_RH_PROVISION;
+
+typedef struct {
+    uint32_t owner;     /* TPM_RH_OWNER */
+    uint32_t platform;
+    TPM_RC responserefailcode;
+}TPMI_RH_CLEAR;
+
 
 #endif /* TPM_INTERFACE_TYPES_H */

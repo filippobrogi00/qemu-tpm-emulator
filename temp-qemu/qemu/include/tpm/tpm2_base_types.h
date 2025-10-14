@@ -32,8 +32,6 @@ typedef int64_t  INT64;
  *  LOGIC VALUES
  *******************************/
 
-#define TRUE  1
-#define FALSE 0
 #define YES   1
 #define NO    0
 #define SET   1

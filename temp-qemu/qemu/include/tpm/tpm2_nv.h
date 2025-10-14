@@ -2,6 +2,12 @@
 #define TPM_NV_STRUCTURES_H
 
 #include <stdint.h>
+#include "tpm2_structures.h"
+#include "tpm2_interfaces.h"
+#include "tpm2_device.h"
+
+struct NVEntry;                 // This is defined later on
+typedef struct TPM2State TPM2State;  /* forward declaration */
 
 /******************************
  * TPM_NV_INDEX
@@ -130,5 +136,10 @@ typedef struct
     uint16_t         size;
     TPMT_NV_PUBLIC_2 nvPublic;
 } TPM2B_NV_PUBLIC_2;
+
+TPM_RC tpm2_nv_define_space(TPM2State *s,
+    TPMI_RH_PROVISION authHandle,
+    const TPM2B_AUTH *auth,         /* new index auth */
+    const TPM2B_NV_PUBLIC *public);
 
 #endif // TPM_NV_STRUCTURES_H

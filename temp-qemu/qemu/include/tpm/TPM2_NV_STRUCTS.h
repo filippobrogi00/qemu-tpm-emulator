@@ -2,6 +2,8 @@
 #define TPM2_NV_STRUCTS_H
 
 #include <stdint.h>
+#include "tpm2_base_types.h"
+#include "tpm2_structures.h"
 
 //
 // Basic TPM 2.0 types
@@ -15,14 +17,6 @@ typedef uint8_t  BYTE;          // 8-bit byte
 #define MAX_NV_INDEX_SIZE 1024 // Platform-defined max NV Index size
 #define TPM2B_DIGEST_SIZE 32   // Size of policy digest for most algorithms
 
-//
-// Authorization structure
-//
-typedef struct
-{
-    UINT16 size;       // Length of authValue
-    BYTE   buffer[64]; // Authorization value (password)
-} TPM2B_AUTH;
 
 //
 // Public metadata for an NV Index

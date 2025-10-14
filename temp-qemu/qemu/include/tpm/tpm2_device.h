@@ -3,7 +3,9 @@
 
 #include "hw/sysbus.h"
 #include <openssl/rsa.h>
-
+//#include "tpm2_nv.h"
+#include "tpm2_nv_entry.h"
+#include <glib.h>
 /* Type name for QEMU object */
 #define TYPE_TPM2 "tpm2"
 // #define TPM2(obj) OBJECT_CHECK(TPM2State, (obj), TYPE_TPM2)
@@ -20,6 +22,17 @@
 #define TPM2_CMD_GEN_RSA    0x02
 #define TPM2_CMD_CLEAR      0x03
 
+#define TPM2_NVSTORAGE_SIZE 6962 // This is the size of the NV storage in a real TPM 2.0
+
+
+enum tpm_state {
+    TPM_STATE_IDLE,
+    TPM_STATE_READY,
+    TPM_STATE_RECEIVING,
+    TPM_STATE_PROCESSING,
+    TPM_STATE_SENDING
+};
+
 OBJECT_DECLARE_SIMPLE_TYPE (TPM2State, TPM2)
 
 struct TPM2State
@@ -29,11 +42,31 @@ struct TPM2State
     MemoryRegion mmio;
     qemu_irq     irq;
 
+    //NV Storage Memory region
+
+    MemoryRegion nv_bank_mem;
+    uint8_t     *nv_bank_ptr;
+    uint32_t     nv_bank_size;
+
+    /* In-RAM index of entries (not serialized as-is; we pack to nv_bank_ptr) */
+    GHashTable  *nv_map;     // key: GUINT_TO_POINTER(nvIndex) -> NvEntry*
+    uint32_t     nv_count;
+    bool         nv_dirty;   // “needs flush to bank” flag
+
+    //ENd NV Storage Memory region
+
     uint32_t ctrl;
     uint32_t status;
     uint32_t key_generated;
     RSA     *rsa_key;
     uint8_t  random_data[32];
+
+    uint8_t command_buffer[1024];
+    uint8_t response_buffer[1024];
+    uint32_t cmd_size;
+    uint32_t resp_size;
+    enum tpm_state state;
+
 };
 
 #endif /* QEMU_TPM2_DEVICE_H */

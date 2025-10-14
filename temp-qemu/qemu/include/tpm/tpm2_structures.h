@@ -2,7 +2,10 @@
 #define TPM_STRUCTS_H
 
 #include <stdint.h>
+#include "tpm2_base_types.h"
+#include "tpm2_algorithms.h"
 
+typedef UINT32 TPMA_OBJECT;
 /******************************
  * ALGORITHM DESCRIPTION
  ******************************/
@@ -21,26 +24,34 @@ typedef struct
 #define SHA512_DIGEST_SIZE 64
 #define NULL_DIGEST_SIZE   0
 
+// Which algoritms do we support?
+// #define TPM_ALG_SHA1
+// #define TPM_ALG_SHA256
+// #define TPM_ALG_SHA384
+// #define TPM_ALG_SHA512
+
+typedef UINT16 TPMI_ALG_HASH;
+
 typedef union
 {
-#ifdef TPM_ALG_SHA1
+// #ifdef TPM_ALG_SHA1
     uint8_t sha1[SHA1_DIGEST_SIZE];
-#endif
-#ifdef TPM_ALG_SHA256
+// #endif
+// #ifdef TPM_ALG_SHA256
     uint8_t sha256[SHA256_DIGEST_SIZE];
-#endif
-#ifdef TPM_ALG_SHA384
+// #endif
+// #ifdef TPM_ALG_SHA384
     uint8_t sha384[SHA384_DIGEST_SIZE];
-#endif
-#ifdef TPM_ALG_SHA512
+// #endif
+// #ifdef TPM_ALG_SHA512
     uint8_t sha512[SHA512_DIGEST_SIZE];
-#endif
+// #endif
     uint8_t null[NULL_DIGEST_SIZE];
 } TPMU_HA;
 
 typedef struct
 {
-    uint16_t hashAlg; // TPMI_ALG_HASH
+    TPMI_ALG_HASH hashAlg; // TPMI_ALG_HASH
     TPMU_HA  digest;
 } TPMT_HA;
 
@@ -334,6 +345,23 @@ typedef struct
     uint16_t                 size;
     TPMS_SET_CAPABILITY_DATA setCapabilityData;
 } TPM2B_SET_CAPABILITY_DATA;
+
+/******************************
+ * CLOCK/COUNTER STRUCTURES
+ ******************************/
+typedef struct
+{
+    UINT16 clock;
+    UINT32 resetCount;
+    UINT32 restartCount;
+    uint8_t safe; // TPMI_YES_NO
+} TPMS_CLOCK_INFO;
+
+typedef struct
+{
+    UINT16 time;
+    TPMS_CLOCK_INFO clockInfo;
+} TPMS_TIME_INFO;
 
 /******************************
  * TPM ATTESTATION STRUCTURES

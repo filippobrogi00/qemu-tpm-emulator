@@ -79,6 +79,11 @@ typedef uint32_t TPM_RH; // Permanent handle type
  ***********************************************/
 typedef uint32_t TPM_HC; // Handle constant type
 
+// Needed for handle validation
+#define IMPLEMENTATION_PCR 24
+#define MAX_ACTIVE_SESSIONS 64
+#define MAX_LOADED_OBJECTS 32
+
 // Masks and shifts
 #define HR_HANDLE_MASK 0x00FFFFFF // Mask off the handle-specific part
 #define HR_RANGE_MASK  0xFF000000 // Mask off the type/MSO part

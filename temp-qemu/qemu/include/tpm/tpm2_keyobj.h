@@ -1,6 +1,9 @@
 #ifndef TPM_OBJ_H
 #define TPM_OBJ_H
 
+#include "tpm2_base_types.h"
+#include "tpm2_alg_structs.h"
+
 /******************************
  * PUBLIC AREA STRUCTURES
  ******************************/

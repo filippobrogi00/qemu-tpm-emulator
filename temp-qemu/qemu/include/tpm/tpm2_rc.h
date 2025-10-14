@@ -1,7 +1,8 @@
-#ifndef TPM_RC_H
-#define TPM_RC_H
+#ifndef TPM_RC_HEADER_H
+#define TPM_RC_HEADER_H
 
-#include "TpmBaseTypes.h"
+#include "tpm2_base_types.h"
+typedef UINT32 TPM_RC;   /* Return code type */
 
 /* Format/Version/Warning bits */
 #define RC_VER1 0x100 /* Format 0, TCG-defined */
@@ -147,26 +148,4 @@ enum
     TPM_RC_NOT_USED        = RC_WARN + 0x07F
 };
 
-/* Additional defines for handle, parameter, session errors and indexing */
-#define TPM_RC_H 0x000 /* add to handle-related error */
-#define TPM_RC_P 0x040 /* add to parameter-related error */
-#define TPM_RC_S 0x800 /* add to session-related error */
-
-/* Parameter/handle/session indexing for RC_FMT1 */
-#define TPM_RC_1 0x100 /* add to parameter-, handle-, or session-related error */
-#define TPM_RC_2 0x200 /* add to parameter-, handle-, or session-related error */
-#define TPM_RC_3 0x300 /* add to parameter-, handle-, or session-related error */
-#define TPM_RC_4 0x400 /* add to parameter-, handle-, or session-related error */
-#define TPM_RC_5 0x500 /* add to parameter-, handle-, or session-related error */
-#define TPM_RC_6 0x600 /* add to parameter-, handle-, or session-related error */
-#define TPM_RC_7 0x700 /* add to parameter-, handle-, or session-related error */
-#define TPM_RC_8 0x800 /* add to parameter-related error */
-#define TPM_RC_9 0x900 /* add to parameter-related error */
-#define TPM_RC_A 0xA00 /* add to parameter-related error */
-#define TPM_RC_B 0xB00 /* add to parameter-related error */
-#define TPM_RC_C 0xC00 /* add to parameter-related error */
-#define TPM_RC_D 0xD00 /* add to parameter-related error */
-#define TPM_RC_E 0xE00 /* add to parameter-related error */
-#define TPM_RC_F 0xF00 /* add to parameter-related error */
-
-#endif /* TPM_RC_H */
+#endif /* TPM_RC_HEADER_H */
