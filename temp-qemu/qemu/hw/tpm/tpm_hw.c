@@ -7,6 +7,9 @@
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
+#include "tpm/tpm2_nv.h"
+#include "tpm/tpm2_structures.h"
+#include "tpm/tpm2_handles.h"
 
 #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ## __VA_ARGS__)
 
@@ -14,6 +17,70 @@
 static void tpm2_generate_random(TPM2State *s) {
     RAND_bytes(s->random_data, sizeof(s->random_data));
 }
+
+
+static inline TPMI_RH_PROVISION tpm2_provision_owner(void) {
+    return (TPMI_RH_PROVISION){TPM_RH_OWNER, TPM_RH_OWNER, TPM_RH_PLATFORM};
+}
+
+static void tpm2_test_definespace(TPM2State *s)
+{
+    TPM2B_AUTH auth = { .size = 4, .buffer = {'1','2','3','4'} };
+
+    TPMS_NV_PUBLIC pub = {
+        .nvIndex   = 0x1500016,
+        .nameAlg   = 0x000B, /* TPM_ALG_SHA256 */
+        .attributes = {
+            .ownerRead   = 1,
+            .ownerWrite  = 1,
+            .authRead    = 1,
+            .authWrite   = 1,
+            .noDA        = 1,
+            .nvType      = TPM_NT_ORDINARY
+        },
+        .dataSize   = 32
+    };
+
+    memset(pub.authPolicy, 0, sizeof(pub.authPolicy));
+
+    TPM2B_NV_PUBLIC publicInfo = {
+        .size = sizeof(pub),
+        .nvPublic = pub
+    };
+
+    TPMI_RH_PROVISION authHandle = tpm2_provision_owner();
+
+    TPM2_LOG("[INIT] Testing NV DefineSpace...\n");
+
+    TPM_RC rc = tpm2_nv_define_space(
+        s,
+        authHandle,
+        &auth,
+        &publicInfo
+    );
+
+    if (rc == TPM_RC_SUCCESS) {
+        TPM2_LOG("[INIT] NV DefineSpace success (count=%u)\n", s->nv_count);
+    } else {
+        TPM2_LOG("[INIT] NV DefineSpace failed! RC=0x%X\n", rc);
+    }
+
+    /* Optional: print existing NV entries */
+    if (s->nv_map && s->nv_count > 0) {
+        GHashTableIter it;
+        gpointer k, v;
+        g_hash_table_iter_init(&it, s->nv_map);
+        while (g_hash_table_iter_next(&it, &k, &v)) {
+            NVEntry *e = v;
+            TPM2_LOG("[INIT] NV Index=0x%X DataSize=%u NameAlg=0x%X\n",
+                     (uint32_t)GPOINTER_TO_UINT(k),
+                     e->pub.dataSize,
+                     e->pub.nameAlg);
+        }
+    }
+}
+
+
 
 
 
@@ -110,7 +177,7 @@ static const VMStateDescription vmstate_tpm2 = {
     .fields = (VMStateField[]) {
         VMSTATE_UINT32(ctrl, TPM2State),
         VMSTATE_UINT32(status, TPM2State),
-        VMSTATE_UINT32(key_generated, TPM2State),
+        VMSTATE_UINT32(key_generated, TPM2State), //We need also to maintain non-volatile storage
         VMSTATE_END_OF_LIST()
     }
 };
@@ -120,6 +187,8 @@ static void tpm2_init(Object *obj) {
     sysbus_init_irq(SYS_BUS_DEVICE(obj), &s->irq);
     memory_region_init_io(&s->mmio, obj, &tpm2_mmio_ops, s, TYPE_TPM2, 0x20);
     sysbus_init_mmio(SYS_BUS_DEVICE(obj), &s->mmio);
+    tpm2_nv_init(s);
+    tpm2_test_definespace(s);
 }
 
 static void tpm2_class_init(ObjectClass *klass, void *data) {

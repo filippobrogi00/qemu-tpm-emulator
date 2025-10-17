@@ -60,6 +60,16 @@ static inline NVEntry *nv_entry_alloc(TPM_NV_INDEX index, uint16_t dataSize,
     return e;
 }
 
+/* Free an NVEntry and its associated data */
+static inline void nv_entry_free(NVEntry *e)
+{
+    if (!e)
+        return;
+    if (e->data)
+        g_free(e->data);
+    g_free(e);
+}
+
 static inline bool tpm2_nv_flush_dirty(TPM2State *s)
 {
     (void)s;
@@ -235,7 +245,62 @@ TPM_RC tpm2_nv_define_space(TPM2State *s,
     printf("[TPM2_NV_DefineSpace] tag=0x%04X size=%u rc=0x%X\n",
            resp.tag, resp.responseSize, resp.responseCode);
 
-    return rc;
+    return rc; //change this to response buffer in real implementation
+}
+
+/* --------------------------------------------------------------------- */
+void tpm2_nv_init(TPM2State *s)
+{
+    if (!s) {
+        TPM2_LOG("Error: TPM2State pointer is NULL\n");
+        return;
+    }
+
+    if (s->nv_map) {
+        TPM2_LOG("NV subsystem already initialized\n");
+        return;
+    }
+
+    /* Allocate GLib hash table to map NV indices → NVEntry* */
+    s->nv_map = g_hash_table_new_full(
+        g_direct_hash,           /* key hash */
+        g_direct_equal,          /* key equality */
+        NULL,                    /* no key destructor */
+        (GDestroyNotify)nv_entry_free /* free NVEntry on removal */
+    );
+
+    if (!s->nv_map) {
+        TPM2_LOG("Failed to allocate NV map (out of memory)\n");
+        return;
+    }
+
+    s->nv_count = 0;
+    s->nv_dirty = false;
+    s->nv_bank_size = TPM2_NVSTORAGE_SIZE;
+
+    TPM2_LOG("NV subsystem initialized (bank size=%u)\n", s->nv_bank_size);
+}
+
+/*
+ * Cleanup all NV entries and free resources.
+ * Safe to call multiple times.
+ */
+void tpm2_nv_cleanup(TPM2State *s)
+{
+    if (!s) {
+        TPM2_LOG("Error: TPM2State pointer is NULL\n");
+        return;
+    }
+
+    if (s->nv_map) {
+        g_hash_table_remove_all(s->nv_map);
+        g_hash_table_destroy(s->nv_map);
+        s->nv_map = NULL;
+        TPM2_LOG("NV subsystem cleaned up\n");
+    }
+
+    s->nv_count = 0;
+    s->nv_dirty = false;
 }
 
 
