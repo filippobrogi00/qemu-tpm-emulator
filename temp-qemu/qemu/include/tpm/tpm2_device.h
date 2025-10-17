@@ -47,6 +47,8 @@ struct TPM2State
     MemoryRegion nv_bank_mem;
     uint8_t     *nv_bank_ptr;
     uint32_t     nv_bank_size;
+    uint32_t     nv_alloc_offset;   // <- add this
+
 
     /* In-RAM index of entries (not serialized as-is; we pack to nv_bank_ptr) */
     GHashTable  *nv_map;     // key: GUINT_TO_POINTER(nvIndex) -> NvEntry*

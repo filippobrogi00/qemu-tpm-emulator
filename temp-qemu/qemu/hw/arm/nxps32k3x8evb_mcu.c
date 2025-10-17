@@ -121,6 +121,33 @@ static void nxps32k3x8evb_mcu_realize(DeviceState *dev_mcu, Error **errp)
     // ========= ADD  TPM 2.0 =========
     DeviceState *tpm = qdev_new("tpm2");
     SysBusDevice *sbd = SYS_BUS_DEVICE(tpm);
+
+      if (!sysbus_realize_and_unref(sbd, &err)) {
+        error_propagate(errp, err);
+        return;
+    }
+
+    MemoryRegion *tpm_mmio = sysbus_mmio_get_region(sbd, 0);
+    if (!tpm_mmio)
+    {
+        error_setg(errp, "Failed to get TPM MMIO region");
+        return;
+    }
+
+    // TPM MMIO is added directly to s->container at correct base
+    memory_region_add_subregion(&s->container, NXPS32K3X8EVB_TPM_BASE_ADDRESS, tpm_mmio); // <-- FIXED
+    memory_region_set_size(sysbus_mmio_get_region(sbd, 0), NXPS32K3X8EVB_TPM_SIZE);
+
+    /*
+    if (!sysbus_realize_and_unref(sbd, errp))
+        return;
+
+    memory_region_add_subregion(&s->container, NXPS32K3X8EVB_TPM_BASE_ADDRESS, sysbus_mmio_get_region(sbd, 0));
+    memory_region_set_size(sysbus_mmio_get_region(sbd, 0), NXPS32K3X8EVB_TPM_SIZE);
+
+
+
+    /*Modified: 17/10/2025
     // qdev_prop_set_string(tpm, "tpmdev", "tpm0"); -- Useful for swtpm
 
     MemoryRegion *tpm_mmio = sysbus_mmio_get_region(sbd, 0);
@@ -140,7 +167,6 @@ static void nxps32k3x8evb_mcu_realize(DeviceState *dev_mcu, Error **errp)
     memory_region_add_subregion(&s->container, NXPS32K3X8EVB_TPM_BASE_ADDRESS, sysbus_mmio_get_region(sbd, 0));
     memory_region_set_size(sysbus_mmio_get_region(sbd, 0), NXPS32K3X8EVB_TPM_SIZE);
 
-   //memory_region_add_subregion_overlap(&s->container, 0, s->board_memory, -1);
 
 
    */

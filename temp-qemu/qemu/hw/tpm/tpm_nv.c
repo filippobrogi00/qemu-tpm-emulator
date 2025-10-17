@@ -48,17 +48,52 @@ static inline bool impl_supports_setbits(TPM2State *s) { (void)s; return true; }
 static inline bool impl_supports_undefine_policy_delete(TPM2State *s) { (void)s; return true; }
 
 /* NV entry allocation & persistence stubs */
-static inline NVEntry *nv_entry_alloc(TPM_NV_INDEX index, uint16_t dataSize,
-                                      uint16_t nameAlg, TPMA_NV attrs,
-                                      const void *auth)
+
+static NVEntry *nv_entry_alloc(TPM2State *s,
+                               TPM_NV_INDEX index,
+                               uint16_t dataSize,
+                               uint16_t nameAlg,
+                               TPMA_NV attrs,
+                               const void *auth)
 {
-    (void)index; (void)nameAlg; (void)attrs; (void)auth;
+    if (!s || !s->nv_bank_ptr) {
+        TPM2_LOG("nv_entry_alloc: NV bank not initialized\n");
+        return NULL;
+    }
+
+    /* Check space in NV bank */
+    if (s->nv_alloc_offset + dataSize > s->nv_bank_size) {
+        TPM2_LOG("nv_entry_alloc: NV bank full (need=%u bytes)\n", dataSize);
+        return NULL;
+    }
+
     NVEntry *e = g_malloc0(sizeof(NVEntry));
-    e->data = g_malloc0(dataSize);
+
+    e->pub.nvIndex    = index;
+    e->pub.nameAlg    = nameAlg;
+    e->pub.attributes = attrs;
+    e->pub.dataSize   = dataSize;
+    memset(e->pub.authPolicy, 0, sizeof(e->pub.authPolicy));
+
+    /* Assign a slice of the NV bank */
+    e->data    = s->nv_bank_ptr + s->nv_alloc_offset;
     e->dataLen = dataSize;
-    e->written = false; /* per spec: starts uninitialized */
+    memset(e->data, 0, e->dataLen);
+
+    /* Advance allocation cursor */
+    s->nv_alloc_offset += dataSize;
+
+    e->written      = false;
+    e->readLocked   = false;
+    e->writeLocked  = false;
+
+    TPM2_LOG("nv_entry_alloc: index=0x%08X offset=%zu size=%u\n",
+             index, s->nv_alloc_offset - dataSize, dataSize);
+
     return e;
 }
+
+
 
 /* Free an NVEntry and its associated data */
 static inline void nv_entry_free(NVEntry *e)
@@ -66,7 +101,8 @@ static inline void nv_entry_free(NVEntry *e)
     if (!e)
         return;
     if (e->data)
-        g_free(e->data);
+        e->data = NULL;  // owned by NV bank
+
     g_free(e);
 }
 
@@ -220,7 +256,7 @@ TPM_RC tpm2_nv_define_space(TPM2State *s,
         return TPM_RC_ATTRIBUTES;
 
     /* 13) Create new NV entry */
-    NVEntry *e = nv_entry_alloc(index, dataSize, nameAlg, attrs, auth);
+    NVEntry *e = nv_entry_alloc(s,index, dataSize, nameAlg, attrs, auth);
     if (!e)
         return TPM_RC_MEMORY;
 
@@ -277,6 +313,8 @@ void tpm2_nv_init(TPM2State *s)
     s->nv_count = 0;
     s->nv_dirty = false;
     s->nv_bank_size = TPM2_NVSTORAGE_SIZE;
+    s->nv_alloc_offset = 0;   // Start of the NV bank
+
 
     TPM2_LOG("NV subsystem initialized (bank size=%u)\n", s->nv_bank_size);
 }

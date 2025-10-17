@@ -2,6 +2,7 @@
 #include "hw/sysbus.h"
 #include "migration/vmstate.h"
 #include "qemu/log.h"
+#include "qapi/error.h"
 #include "qemu/module.h"
 #include "tpm/tpm2_device.h"
 #include <openssl/rand.h>
@@ -158,6 +159,48 @@ static const MemoryRegionOps tpm2_mmio_ops = {
     .impl.max_access_size = 4,
 };
 
+
+static void tpm2_realize(DeviceState *dev, Error **errp)
+{
+    TPM2State *s = TPM2(dev);
+    Error *err = NULL;
+
+
+
+    //Here it returns error: Cannot get MMIO region.
+    
+    /* IRQ + MMIO window (guest-visible) */
+    sysbus_init_irq(SYS_BUS_DEVICE(dev), &s->irq);
+    memory_region_init_io(&s->mmio, OBJECT(dev), &tpm2_mmio_ops, s, TYPE_TPM2, 0x20);
+    sysbus_init_mmio(SYS_BUS_DEVICE(dev), &s->mmio);
+
+    /* --- NV bank: private RAM (internal, not mapped to system bus) --- */
+    memory_region_init_ram(&s->nv_bank_mem, OBJECT(dev), "tpm2.nvbank",
+                           TPM2_NVSTORAGE_SIZE, &err);
+    if (err) { error_propagate(errp, err); return; }
+
+    s->nv_bank_ptr  = memory_region_get_ram_ptr(&s->nv_bank_mem);
+    s->nv_bank_size = TPM2_NVSTORAGE_SIZE;
+
+    /* Zeroing a fresh buffer is fine with memset (secure wipe is a different topic) */
+    memset(s->nv_bank_ptr, 0, s->nv_bank_size);
+    TPM2_LOG("[DEBUG]NV bank initialized: %u bytes at %p\n", s->nv_bank_size, s->nv_bank_ptr);
+
+    tpm2_nv_init(s);
+    s->nv_alloc_offset = 0;
+
+
+    TPM2_LOG("[DEBUG]NV map initialized, running definespace_test\n");
+    tpm2_test_definespace(s);
+
+}
+
+
+
+
+
+
+
 static void tpm2_reset(DeviceState *dev) {
     TPM2State *s = TPM2(dev);
     s->ctrl = 0;
@@ -177,18 +220,22 @@ static const VMStateDescription vmstate_tpm2 = {
     .fields = (VMStateField[]) {
         VMSTATE_UINT32(ctrl, TPM2State),
         VMSTATE_UINT32(status, TPM2State),
-        VMSTATE_UINT32(key_generated, TPM2State), //We need also to maintain non-volatile storage
+        VMSTATE_UINT32(key_generated, TPM2State),
+        //VMSTATE_MEMORY_REGION(nv_bank_mem, TPM2State),  //We need also to maintain non-volatile storage
         VMSTATE_END_OF_LIST()
     }
 };
 
 static void tpm2_init(Object *obj) {
     TPM2State *s = TPM2(obj);
+    /*
     sysbus_init_irq(SYS_BUS_DEVICE(obj), &s->irq);
     memory_region_init_io(&s->mmio, obj, &tpm2_mmio_ops, s, TYPE_TPM2, 0x20);
     sysbus_init_mmio(SYS_BUS_DEVICE(obj), &s->mmio);
-    tpm2_nv_init(s);
-    tpm2_test_definespace(s);
+    */
+       // tpm2_nv_init(s);
+
+    //tpm2_test_definespace(s);
 }
 
 static void tpm2_class_init(ObjectClass *klass, void *data) {
@@ -196,6 +243,7 @@ static void tpm2_class_init(ObjectClass *klass, void *data) {
     device_class_set_legacy_reset(dc, tpm2_reset);
     dc->vmsd = &vmstate_tpm2;
     dc->desc = "TPM 2.0 custom device";  // <-- This must be set!
+    dc->realize = tpm2_realize;
 }
 
 static const TypeInfo tpm2_info = {

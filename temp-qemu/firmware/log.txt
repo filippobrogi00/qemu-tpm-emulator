@@ -551,54 +551,62 @@ ninja: no work to do.
 /root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/meson introspect --targets --tests --benchmarks | /root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 -B scripts/mtest2make.py > Makefile.mtest
 [1/54] Generating qemu-version.h with a custom command (wrapped by meson to capture output)
 [2/42] Generating block.syms with a custom command (wrapped by meson to capture output)
-[3/39] Generating qemu.syms with a custom command (wrapped by meson to capture output)
-[4/39] Compiling C object libcommon.a.p/hw_tpm_tpm_hw.c.o
+[3/38] Generating qemu.syms with a custom command (wrapped by meson to capture output)
+[4/38] Compiling C object libcommon.a.p/hw_tpm_tpm_hw.c.o
+../hw/tpm/tpm_hw.c:15: warning: "TPM2_LOG" redefined
+   15 | #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ## __VA_ARGS__)
+      | 
+In file included from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_nv_entry.h:9,
+                 from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_device.h:7,
+                 from ../hw/tpm/tpm_hw.c:7:
+/root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_nv.h:10: note: this is the location of the previous definition
+   10 | #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ##__VA_ARGS__)
+      | 
 ../hw/tpm/tpm_hw.c: In function ‘tpm2_generate_rsa_key’:
-../hw/tpm/tpm_hw.c:90:9: warning: ‘RSA_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-   90 |         RSA_free(s->rsa_key);
+../hw/tpm/tpm_hw.c:91:9: warning: ‘RSA_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+   91 |         RSA_free(s->rsa_key);
       |         ^~~~~~~~
-In file included from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_device.h:5,
-                 from ../hw/tpm/tpm_hw.c:6:
+In file included from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_device.h:5:
 /usr/include/openssl/rsa.h:298:28: note: declared here
   298 | OSSL_DEPRECATEDIN_3_0 void RSA_free(RSA *r);
       |                            ^~~~~~~~
-../hw/tpm/tpm_hw.c:94:5: warning: ‘RSA_new’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-   94 |     s->rsa_key = RSA_new();
+../hw/tpm/tpm_hw.c:95:5: warning: ‘RSA_new’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+   95 |     s->rsa_key = RSA_new();
       |     ^
 /usr/include/openssl/rsa.h:206:28: note: declared here
   206 | OSSL_DEPRECATEDIN_3_0 RSA *RSA_new(void);
       |                            ^~~~~~~
-../hw/tpm/tpm_hw.c:95:5: warning: ‘RSA_generate_key_ex’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-   95 |     RSA_generate_key_ex(s->rsa_key, 2048, bn, NULL);
+../hw/tpm/tpm_hw.c:96:5: warning: ‘RSA_generate_key_ex’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+   96 |     RSA_generate_key_ex(s->rsa_key, 2048, bn, NULL);
       |     ^~~~~~~~~~~~~~~~~~~
 /usr/include/openssl/rsa.h:265:27: note: declared here
   265 | OSSL_DEPRECATEDIN_3_0 int RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e,
       |                           ^~~~~~~~~~~~~~~~~~~
 ../hw/tpm/tpm_hw.c: In function ‘tpm2_mmio_write’:
-../hw/tpm/tpm_hw.c:135:25: warning: ‘RSA_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-  135 |                         RSA_free(s->rsa_key);
+../hw/tpm/tpm_hw.c:136:25: warning: ‘RSA_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  136 |                         RSA_free(s->rsa_key);
       |                         ^~~~~~~~
 /usr/include/openssl/rsa.h:298:28: note: declared here
   298 | OSSL_DEPRECATEDIN_3_0 void RSA_free(RSA *r);
       |                            ^~~~~~~~
 ../hw/tpm/tpm_hw.c: In function ‘tpm2_reset’:
-../hw/tpm/tpm_hw.c:167:9: warning: ‘RSA_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-  167 |         RSA_free(s->rsa_key);
+../hw/tpm/tpm_hw.c:210:9: warning: ‘RSA_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  210 |         RSA_free(s->rsa_key);
       |         ^~~~~~~~
 /usr/include/openssl/rsa.h:298:28: note: declared here
   298 | OSSL_DEPRECATEDIN_3_0 void RSA_free(RSA *r);
       |                            ^~~~~~~~
-../hw/tpm/tpm_hw.c: At top level:
-../hw/tpm/tpm_hw.c:26:13: warning: ‘tpm2_test_definespace’ defined but not used [-Wunused-function]
-   26 | static void tpm2_test_definespace(TPM2State *s)
-      |             ^~~~~~~~~~~~~~~~~~~~~
-[5/39] Linking target qemu-system-arm
-[6/39] Linking target storage-daemon/qemu-storage-daemon
-[7/39] Generating tests/include/QAPI test (include) with a custom command
+../hw/tpm/tpm_hw.c: In function ‘tpm2_init’:
+../hw/tpm/tpm_hw.c:230:16: warning: unused variable ‘s’ [-Wunused-variable]
+  230 |     TPM2State *s = TPM2(obj);
+      |                ^
+[5/38] Linking target qemu-system-arm
+[6/38] Generating tests/include/QAPI test (include) with a custom command
 arm-none-eabi-ld -T linker.ld startup.o main.o uart.o -o main.elf
 ../qemu/build/qemu-system-arm -M nxps32k3x8evb -nographic -kernel main.elf
+[TPM2_NV_DefineSpace] tag=0x8001 size=12 rc=0x0
 [UART]TPM2 Example Start
-Random Value: 344335427
+Random Value: 633203119
 RSA KEY GEN: 1
 Enter message to encrypt:
 >> 
