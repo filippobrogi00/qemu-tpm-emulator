@@ -85,6 +85,7 @@ typedef struct
     uint16_t     nameAlg;
     TPMA_NV      attributes;
     uint8_t      authPolicy[64]; // TPM2B_DIGEST, implementation-defined size
+    uint16_t     authPolicySize;
     uint16_t     dataSize;
 } TPMS_NV_PUBLIC;
 

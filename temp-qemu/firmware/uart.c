@@ -161,3 +161,23 @@ void UART_gets(char *s, int maxlen)
     s[i] = '\0';
     UART_putc('\n');
 }
+
+void UART_print_hex(const uint8_t *data, uint32_t len) {
+    char hex_digits[] = "0123456789abcdef";
+    
+    for (uint32_t i = 0; i < len; i++) {
+        // --- FIX: Manually print the two hex digits ---
+        UART_putc(hex_digits[(data[i] >> 4) & 0x0F]);
+        UART_putc(hex_digits[data[i] & 0x0F]);
+        // --- END FIX ---
+
+        if ((i + 1) % 16 == 0) {
+            UART_putstr("\n");
+        } else if ((i + 1) % 4 == 0) {
+            UART_putstr(" ");
+        }
+    }
+    if (len % 16 != 0) {
+        UART_printf("\n");
+    }
+}

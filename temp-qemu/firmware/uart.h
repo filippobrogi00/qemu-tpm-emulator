@@ -20,5 +20,6 @@ void UART_printf(const char *fmt, ...);
 void UART_putc(const char c);
 char UART_getc(void);
 void UART_gets(char *s, int maxlen);
+void UART_print_hex(const uint8_t *data, uint32_t len);
 
 #endif

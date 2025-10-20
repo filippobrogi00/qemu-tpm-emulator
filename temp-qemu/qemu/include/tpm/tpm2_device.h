@@ -1,6 +1,7 @@
 #ifndef QEMU_TPM2_DEVICE_H
 #define QEMU_TPM2_DEVICE_H
 
+#include "qemu/osdep.h"
 #include "hw/sysbus.h"
 #include <openssl/rsa.h>
 //#include "tpm2_nv.h"
@@ -31,6 +32,13 @@ enum tpm_state {
     TPM_STATE_RECEIVING,
     TPM_STATE_PROCESSING,
     TPM_STATE_SENDING
+};
+
+enum tpm_operational_mode {
+    TPM_MODE_NORMAL,
+    TPM_MODE_FAILURE,
+    TPM_MODE_FIELD,
+    TPM_MODE_NOINIT
 };
 
 OBJECT_DECLARE_SIMPLE_TYPE (TPM2State, TPM2)
@@ -65,8 +73,9 @@ struct TPM2State
     uint8_t response_buffer[1024];
     uint32_t cmd_size;
     uint32_t resp_size;
+    uint32_t resp_idx;
     enum tpm_state state;
-
+    enum tpm_operational_mode tpm_mode;
 };
 
 #endif /* QEMU_TPM2_DEVICE_H */

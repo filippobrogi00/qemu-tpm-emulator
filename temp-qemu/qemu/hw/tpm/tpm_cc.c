@@ -1,20 +1,38 @@
-#include "../../include/tpm/tpm2_base_types.h"
-#include "../../include/tpm/tpm2_cc.h"
-#include "../../include/tpm/tpm2_device.h"
-#include "../../include/tpm/tpm2_handles.h"
-#include "../../include/tpm/tpm2_interfaces.h"
-#include "../../include/tpm/tpm2_rc.h"
+#include "qemu/osdep.h"
+#include <stdbool.h>       // For bool type
+#include "qemu/bswap.h"
+#include "command_chain/cc_header.h"
+#include "tpm/tpm2_device.h"
+
+// --- ADDED HEADERS ---
+#include "tpm/tpm2_rc.h"   // For TPM_RC_... constants
+#include "tpm/tpm2_cc.h"   // For TPM_CC_... constants
+
+// --- END ADDED ---
+
+
+/**
+ * @brief Checks if a command code is in the valid range.
+ * (Based on cc_header.h)
+ */
+bool is_valid_cc_command(UINT32 commandCode)
+{
+    if ((commandCode >= TPM_CC_FIRST && commandCode <= TPM_CC_LAST) ||
+        (commandCode >= CC_VEND && commandCode <= 0x2FFFFFFF)) {
+        return true;
+    }
+    return false;
+}
 
 /*************************************
- *  COMMAND HEADER VALIDATION
+ * COMMAND HEADER VALIDATION
  *************************************/
 
 /*
  * Unpacks a TPM command header from a raw input buffer.
  * Returns 0 on success, -1 on failure.
  */
-int
-tpm_unpack_header (const uint8_t *buffer, size_t bufferSize, TPM_CMD_HEADER *header)
+int tpm_unpack_header (const uint8_t *buffer, size_t bufferSize, TPM_CMD_HEADER *header)
 {
   if (!buffer || !header)
     return -1;
@@ -23,13 +41,13 @@ tpm_unpack_header (const uint8_t *buffer, size_t bufferSize, TPM_CMD_HEADER *hea
   if (bufferSize < 10)
     return -1;
 
-  // TPM values are big-endian
-  header->tag         = read_be16 (buffer);
-  header->commandSize = read_be32 (buffer + 2);
-  header->commandCode = read_be32 (buffer + 6);
+  // TPM values are big-endian. Use QEMU's functions.
+  header->tag = lduw_be_p(buffer);
+  header->size = ldl_be_p(buffer + 2); 
+  header->code = ldl_be_p(buffer + 6);
 
   // Optional: sanity check
-  if (header->commandSize != bufferSize)
+  if (header->size != bufferSize)
     {
       // Mismatch between header length and buffer length
       return -1;
@@ -39,8 +57,7 @@ tpm_unpack_header (const uint8_t *buffer, size_t bufferSize, TPM_CMD_HEADER *hea
 }
 
 /* Validates a TPM Command Header */
-UINT32
-TPM2_ValidateCommandHeader (const UINT8 *cmdBuf, size_t bufSize, TPM_CMD_HEADER *hdr)
+UINT32 TPM2_ValidateCommandHeader (const UINT8 *cmdBuf, size_t bufSize, TPM_CMD_HEADER *hdr)
 {
   /* Validate input parameters */
   if (!cmdBuf || bufSize < 10)
@@ -50,48 +67,55 @@ TPM2_ValidateCommandHeader (const UINT8 *cmdBuf, size_t bufSize, TPM_CMD_HEADER 
   if (tpm_unpack_header (cmdBuf, bufSize, hdr) == -1)
     return TPM_RC_COMMAND_SIZE;
 
-  /* 1. Validate tag: Either TPMI_ST_COMMAND_TAG_(NO_)SESSIONS */
-  if (hdr->tag != TPMI_ST_COMMAND_TAG_NO_SESSIONS && hdr->tag != TPMI_ST_COMMAND_TAG_SESSIONS)
+  // --- THIS IS THE FIX ---
+  /* 1. Validate tag: Must use constants from cc_header.h */
+  if (hdr->tag != TPM_ST_NO_SESSIONS && hdr->tag != TPM_ST_SESSIONS)
     return TPM_RC_BAD_TAG;
+  // --- END OF FIX ---
 
-  /* 2. Validate commandSize: Must not exceed bufSize */
-  if (hdr->commandSize < 10 || hdr->commandSize > bufSize)
+  /* 2. Validate commandSize: Must match bufSize */
+  if (hdr->size < 10 || hdr->size != bufSize) // Changed to !=
     return TPM_RC_COMMAND_SIZE;
 
   /* 3. Validate commandCode: Verify command is Implemented by TPM */
-  if (!is_valid_cc_command (hdr->commandCode))
+  if (!is_valid_cc_command (hdr->code))
     return TPM_RC_COMMAND_CODE;
 
   return TPM_RC_SUCCESS;
 }
 
 /*************************************
- *  MODE CHECK
+ * MODE CHECK
  *************************************/
 
 /* Checks TPM Mode */
-UINT32
-TPM2_ValidateMode (TPM_CMD_HEADER cmdHeader, TPMState TPM_State)
+UINT32 TPM2_ValidateMode (TPM_CMD_HEADER *cmdHeader, TPM2State *TPM_State) // Pass by pointer
 {
   /* Check Failure Mode */
-  switch (TPM_State.tpm_mode)
+  switch (TPM_State->tpm_mode) // Use -> operator
     {
     case TPM_MODE_FAILURE:
       if (!(
-              (cmdHeader.commandCode == TPM_CC_GetTestResult || cmdHeader.commandCode == TPM_CC_GetCapability)
-              && cmdHeader.tag == TPMI_ST_COMMAND_TAG_NO_SESSIONS))
+              (cmdHeader->code == TPM_CC_GetTestResult || cmdHeader->code == TPM_CC_GetCapability)
+              // --- THIS IS THE FIX ---
+              && cmdHeader->tag == TPM_ST_NO_SESSIONS))
+              // --- END OF FIX ---
         return TPM_RC_FAILURE;
       break;
 
     case TPM_MODE_FIELD:
-      if (!(cmdHeader.commandCode == TPM_CC_FieldUpgradeData))
+      if (!(cmdHeader->code == TPM_CC_FieldUpgradeData))
         return TPM_RC_UPGRADE;
       break;
 
     case TPM_MODE_NOINIT:
-      if (!(cmdHeader.commandCode == TPM_CC_Startup))
+      if (!(cmdHeader->code == TPM_CC_Startup))
         return TPM_RC_INITIALIZE;
       break;
+    
+    case TPM_MODE_NORMAL:
+        // No checks needed in normal mode
+        break;
     }
 
   return TPM_RC_SUCCESS;

@@ -3,7 +3,7 @@ ARM_GNU ?= arm-none-eabi
 
 # Compiler flags
 AARCH = -mcpu=cortex-m7
-CFLAGS = -c -Wall $(AARCH) -mthumb
+CFLAGS = -c -Wall $(AARCH) -mthumb 
 DEBUG_FLAGS = -g3 -O0
 
 # Assembler flags
