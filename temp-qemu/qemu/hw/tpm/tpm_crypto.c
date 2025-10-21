@@ -1,4 +1,4 @@
-#include <openssl/evp.h>
+#include <openssl/evp.h> // EVP_MD OpenSSL type
 #include <openssl/hmac.h>
 #include <openssl/rsa.h>
 #include <stdint.h>

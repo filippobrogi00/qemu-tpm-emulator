@@ -1,8 +1,8 @@
 #ifndef TPM_INTERFACE_TYPES_H
 #define TPM_INTERFACE_TYPES_H
 
-#include <stdint.h>
 #include "tpm2_rc.h"
+#include <stdint.h>
 
 /******************************
  * Introduction
@@ -293,14 +293,14 @@ typedef uint32_t TPMI_DH_CONTEXT;
  * TPMI_ALG_HASH
  ******************************/
 #define TPMI_ALG_HASH_NULL 0x0000
-/* Additional hash algorithm IDs defined by TCG can be added with #ifdef/#endif guards */
+
 /* #TPM_RC_HASH */
 
 /******************************
  * TPMI_ALG_ASYM
  ******************************/
 #define TPMI_ALG_ASYM_NULL 0x0000
-/* Additional asymmetric algorithm IDs defined by TCG can be added with #ifdef/#endif guards */
+
 /* #TPM_RC_ASYMMETRIC */
 
 /******************************
@@ -308,28 +308,28 @@ typedef uint32_t TPMI_DH_CONTEXT;
  ******************************/
 #define TPMI_ALG_SYM_NULL 0x0000
 #define TPMI_ALG_SYM_XOR  0x0001
-/* Additional symmetric block cipher algorithm IDs defined by TCG can be added with #ifdef/#endif guards */
+
 /* #TPM_RC_SYMMETRIC */
 
 /******************************
  * TPMI_ALG_SYM_OBJECT
  ******************************/
 #define TPMI_ALG_SYM_OBJECT_NULL 0x0000
-/* Additional symmetric block ciphers usable in CFB for asymmetric objects can be added here */
+
 /* #TPM_RC_SYMMETRIC */
 
 /******************************
  * TPMI_ALG_SYM_MODE
  ******************************/
 #define TPMI_ALG_SYM_MODE_NULL 0x0000
-/* Additional symmetric block cipher modes and MAC modes defined by TCG can be added here */
+
 /* #TPM_RC_MODE */
 
 /******************************
  * TPMI_ALG_KDF
  ******************************/
 #define TPMI_ALG_KDF_NULL 0x0000
-/* Additional hash-based key/mask derivation functions defined by TCG can be added here */
+
 /* #TPM_RC_KDF */
 
 /******************************
@@ -337,14 +337,14 @@ typedef uint32_t TPMI_DH_CONTEXT;
  ******************************/
 #define TPMI_ALG_SIG_SCHEME_NULL 0x0000
 #define TPMI_ALG_SIG_SCHEME_HMAC 0x0001
-/* Additional asymmetric signing schemes defined by TCG can be added here */
+
 /* #TPM_RC_SCHEME */
 
 /******************************
  * TPMI_ECC_KEY_EXCHANGE
  ******************************/
 #define TPMI_ECC_KEY_EXCHANGE_NULL 0x0000
-/* Additional ECC key exchange schemes defined by TCG can be added here */
+
 /* #TPM_RC_SCHEME */
 
 /******************************
@@ -358,29 +358,30 @@ typedef uint32_t TPMI_DH_CONTEXT;
  * TPMI_ALG_MAC_SCHEME
  ******************************/
 #define TPMI_ALG_MAC_SCHEME_NULL 0x0000
-/* Additional symmetric MAC and hash algorithms defined by TCG can be added here */
+
 /* #TPM_RC_SYMMETRIC */
 
 /******************************
  * TPMI_ALG_CIPHER_MODE
  ******************************/
 #define TPMI_ALG_CIPHER_MODE_NULL 0x0000
-/* Additional symmetric block cipher modes defined by TCG can be added here */
+
 /* #TPM_RC_MODE */
 
 /* Added by Mugna */
 
-typedef struct {
-    uint32_t owner;     /* TPM_RH_OWNER */
-    uint32_t platform;
-    TPM_RC responsefailcode;
-}TPMI_RH_PROVISION;
+typedef struct
+{
+  uint32_t owner; /* TPM_RH_OWNER */
+  uint32_t platform;
+  TPM_RC   responsefailcode;
+} TPMI_RH_PROVISION;
 
-typedef struct {
-    uint32_t owner;     /* TPM_RH_OWNER */
-    uint32_t platform;
-    TPM_RC responserefailcode;
-}TPMI_RH_CLEAR;
-
+typedef struct
+{
+  uint32_t owner; /* TPM_RH_OWNER */
+  uint32_t platform;
+  TPM_RC   responserefailcode;
+} TPMI_RH_CLEAR;
 
 #endif /* TPM_INTERFACE_TYPES_H */
