@@ -94,7 +94,6 @@ static NVEntry *nv_entry_alloc(TPM2State *s,
 }
 
 
-
 /* Free an NVEntry and its associated data */
 static inline void nv_entry_free(NVEntry *e)
 {
@@ -340,5 +339,37 @@ void tpm2_nv_cleanup(TPM2State *s)
     s->nv_count = 0;
     s->nv_dirty = false;
 }
+
+
+static TPM_RC nv_write_crypt_to_bank(TPM2State *s, NVEntry *e,
+                                      const uint8_t *plain, uint16_t len, uint16_t offset)
+{
+    if (!e || !plain) return TPM_RC_FAILURE;
+    if (offset + len > e->pub.dataSize) return TPM_RC_SIZE;
+
+    /* Optional: re-roll IV on each write for stronger forward secrecy */
+    uint8_t *iv_ptr = nv_bank_at(s, e->data_off - 16); //This is the iv pointer in the bank. We need to maintain it
+    //in memory so that when decrypting. it returns the correct data.
+    if (RAND_bytes(e->iv, 16) != 1) {
+        TPM2_LOG("[NV] RAND_bytes(IV) failed on write\n");
+        return TPM_RC_FAILURE;
+    }
+    
+    memcpy(iv_ptr, e->iv, 16);
+
+    /* Encrypt in place from plaintext into bank ciphertext region */
+    uint8_t *ct = e->data + offset; //this is the crypted cypterhtext point from NV bank
+    int outlen = TPM2_AES_CFB_Crypt(s->master_key, s->master_key_len,
+                                    iv_ptr, plain, len, ct, 1);
+    if (outlen <= 0) {
+        TPM2_LOG("[NV] Encrypt failed on write\n");
+        return TPM_RC_FAILURE;
+    }
+    e->written = true;
+    return TPM_RC_SUCCESS;
+}
+
+
+
 
 
