@@ -3,11 +3,59 @@
 
 #include "tpm2_base_types.h"
 #include "tpm2_alg_structs.h"
-
+#define PRIVATE_VENDOR_SPECIFIC_BYTES 1024 //
 /******************************
  * PUBLIC AREA STRUCTURES
  ******************************/
 typedef UINT16 TPMI_ALG_PUBLIC; // TPM_ALG_ID type for public area
+
+typedef struct
+{
+    TPMT_KEYEDHASH_SCHEME scheme;
+} TPMS_KEYEDHASH_PARMS;
+
+typedef struct
+{
+    TPMT_SYM_DEF_OBJECT symmetric;
+    TPMT_RSA_SCHEME     scheme;
+    TPMI_RSA_KEY_BITS   keyBits;
+    UINT32              exponent;
+} TPMS_RSA_PARMS;
+
+
+typedef struct
+{
+    TPMT_SYM_DEF_OBJECT symmetric;
+    TPMT_ECC_SCHEME     scheme;
+    TPMI_ECC_CURVE      curveID;
+    TPMT_KDF_SCHEME     kdf;
+} TPMS_ECC_PARMS;
+
+typedef struct
+{
+    TPMT_SYM_DEF_OBJECT symmetric;
+    TPMT_ASYM_SCHEME    scheme;
+} TPMS_ASYM_PARMS;
+
+typedef union
+{
+    TPMS_KEYEDHASH_PARMS keyedHashDetail;
+    TPMS_SYMCIPHER_PARMS symDetail;
+    TPMS_RSA_PARMS       rsaDetail;
+    TPMS_ECC_PARMS       eccDetail;
+    TPMS_ASYM_PARMS      asymDetail;
+} TPMU_PUBLIC_PARMS;
+
+
+typedef union
+{
+    TPM2B_DIGEST         keyedHash;
+    TPM2B_DIGEST         sym;
+    TPM2B_PUBLIC_KEY_RSA rsa;
+    TPMS_ECC_POINT       ecc;
+    TPMS_DERIVE          derive; // for TPM2_CreateLoaded derivation
+} TPMU_PUBLIC_ID;
+
 
 typedef struct
 {
@@ -34,50 +82,16 @@ typedef struct
 /******************************
  * PUBLIC AREA TYPE-SPECIFIC PARAMETERS
  ******************************/
-typedef struct
-{
-    TPMT_KEYEDHASH_SCHEME scheme;
-} TPMS_KEYEDHASH_PARMS;
 
-typedef struct
-{
-    TPMT_SYM_DEF_OBJECT symmetric;
-    TPMT_ASYM_SCHEME    scheme;
-} TPMS_ASYM_PARMS;
 
-typedef struct
-{
-    TPMT_SYM_DEF_OBJECT symmetric;
-    TPMT_RSA_SCHEME     scheme;
-    TPMI_RSA_KEY_BITS   keyBits;
-    UINT32              exponent;
-} TPMS_RSA_PARMS;
 
-typedef struct
-{
-    TPMT_SYM_DEF_OBJECT symmetric;
-    TPMT_ECC_SCHEME     scheme;
-    TPMI_ECC_CURVE      curveID;
-    TPMT_KDF_SCHEME     kdf;
-} TPMS_ECC_PARMS;
 
-typedef union
-{
-    TPMS_KEYEDHASH_PARMS keyedHashDetail;
-    TPMS_SYMCIPHER_PARMS symDetail;
-    TPMS_RSA_PARMS       rsaDetail;
-    TPMS_ECC_PARMS       eccDetail;
-    TPMS_ASYM_PARMS      asymDetail;
-} TPMU_PUBLIC_PARMS;
 
-typedef union
-{
-    TPM2B_DIGEST         keyedHash;
-    TPM2B_DIGEST         sym;
-    TPM2B_PUBLIC_KEY_RSA rsa;
-    TPMS_ECC_POINT       ecc;
-    TPMS_DERIVE          derive; // for TPM2_CreateLoaded derivation
-} TPMU_PUBLIC_ID;
+
+
+
+
+
 
 typedef struct
 {

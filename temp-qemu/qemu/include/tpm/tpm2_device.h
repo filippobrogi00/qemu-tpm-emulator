@@ -6,8 +6,12 @@
 //#include "tpm2_nv.h"
 #include "tpm2_nv_entry.h"
 #include <glib.h>
+#include "tpm2_keyobj.h"
+
 /* Type name for QEMU object */
 #define TYPE_TPM2 "tpm2"
+#define TPM2_SEED_SIZE 32 //Seed size for eps,pps,sps
+
 // #define TPM2(obj) OBJECT_CHECK(TPM2State, (obj), TYPE_TPM2)
 
 /* MMIO Offsets */
@@ -39,6 +43,8 @@ struct TPM2State
 {
     SysBusDevice parent_obj;
 
+
+
     MemoryRegion mmio;
     qemu_irq     irq;
 
@@ -68,6 +74,17 @@ struct TPM2State
     uint32_t cmd_size;
     uint32_t resp_size;
     enum tpm_state state;
+
+    //Primay handle sensitive data
+    uint8_t pps[32], sps[32], eps[32]; //Seeds
+    uint8_t phProof[32], shProof[32], ehProof[32]; //Storage root proofs
+
+    TPM2B_SENSITIVE primary_sensitive;  // last created sensitive area
+    TPM2B_PUBLIC    primary_public;     // last created public area
+    TPM2B_NAME      primary_name;       // last created Name
+
+    uint32_t next_transient_handle;
+    bool initialized;
 
 };
 

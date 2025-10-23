@@ -11,6 +11,7 @@
 #include "tpm/tpm2_nv.h"
 #include "tpm/tpm2_structures.h"
 #include "tpm/tpm2_handles.h"
+#include "tpm/tpm2_crypto.h"
 
 #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ## __VA_ARGS__)
 
@@ -79,6 +80,97 @@ static void tpm2_test_definespace(TPM2State *s)
                      e->pub.nameAlg);
         }
     }
+}
+
+
+
+
+
+
+
+TPM_RC tpm2_test_CreatePrimary(TPM2State *s)
+{
+    TPM2_LOG("---- [TPM TEST] CreatePrimary start ----\n");
+
+    /* 1. Initialize seeds and proofs */
+    for (int i = 0; i < 32; i++) {
+        s->sps[i]     = 0x10 + i;
+        s->shProof[i] = 0x20 + i;
+        s->pps[i]     = 0x30 + i;
+        s->phProof[i] = 0x40 + i;
+        s->eps[i]     = 0x50 + i;
+        s->ehProof[i] = 0x60 + i;
+    }
+    s->next_transient_handle = 1;
+    s->initialized = true;
+
+    /* 2. Prepare inSensitive */
+    TPM2B_SENSITIVE_CREATE inSensitive;
+    memset(&inSensitive, 0, sizeof(inSensitive));
+    inSensitive.size = sizeof(inSensitive.sensitive);
+    inSensitive.sensitive.userAuth.size = 6;
+    memcpy(inSensitive.sensitive.userAuth.buffer, "passwd", 6);
+
+    /* 3. Prepare inPublic (ECC P-256) */
+    TPM2B_PUBLIC inPublic;
+    memset(&inPublic, 0, sizeof(inPublic));
+    inPublic.size = sizeof(inPublic.publicArea);
+    inPublic.publicArea.type     = TPM_ALG_ECC;
+    inPublic.publicArea.nameAlg  = TPM_ALG_SHA256;
+    inPublic.publicArea.objectAttributes =
+        0x00030072; // userWithAuth | sign | fixedTPM | fixedParent
+    inPublic.publicArea.parameters.eccDetail.curveID = TPM_ECC_NIST_P256;
+
+    /* 4. Output placeholders */
+    TPM2B_PUBLIC outPublic;
+    TPM2B_NAME name;
+    memset(&outPublic, 0, sizeof(outPublic));
+    memset(&name, 0, sizeof(name));
+    TPM2_LOG("---- [TPM TEST] CreatePrimary start 2----\n");
+    /* 5. Invoke CreatePrimary (objectHandle = NULL) */
+    TPM_RC rc = tpm2_CreatePrimary(s,
+                                   TPM_RH_OWNER,
+                                   &inSensitive,
+                                   &inPublic,
+                                   NULL,   /* outsideInfo */
+                                   NULL,   /* creationPCR */
+                                   NULL,   /* objectHandle unused */
+                                   &outPublic,
+                                   &name);
+
+    /* 6. Evaluate result */
+    TPM2_LOG("tpm2_CreatePrimary() returned 0x%X\n", rc);
+    if (rc != TPM_RC_SUCCESS) {
+        TPM2_LOG("FAILED: rc=0x%X\n", rc);
+        return rc;
+    }
+
+    TPM2_LOG("Primary key created successfully.\n");
+
+    /* 7. Log key details */
+    TPM2_LOG("Private key (d): ");
+    for (int i = 0; i < s->primary_sensitive.sensitiveArea.sensitive.ecc.size; i++)
+        qemu_log("%02X", s->primary_sensitive.sensitiveArea.sensitive.ecc.buffer[i]);
+    qemu_log("\n");
+
+    TPM2_LOG("Public X: ");
+    for (int i = 0; i < outPublic.publicArea.unique.ecc.x.size; i++)
+        qemu_log("%02X", outPublic.publicArea.unique.ecc.x.buffer[i]);
+    qemu_log("\n");
+
+    TPM2_LOG("Public Y: ");
+    for (int i = 0; i < outPublic.publicArea.unique.ecc.y.size; i++)
+        qemu_log("%02X", outPublic.publicArea.unique.ecc.y.buffer[i]);
+    qemu_log("\n");
+
+    TPM2_LOG("Name: ");
+    for (int i = 0; i < name.size; i++)
+        qemu_log("%02X", name.name[i]);
+    qemu_log("\n");
+
+    TPM2_LOG("---- [TPM TEST] CreatePrimary done ----\n\n");
+
+    return TPM_RC_SUCCESS;
 }
 
 
@@ -192,6 +284,8 @@ static void tpm2_realize(DeviceState *dev, Error **errp)
 
     TPM2_LOG("[DEBUG]NV map initialized, running definespace_test\n");
     tpm2_test_definespace(s);
+    TPM2_LOG("[DEBUG]Running CreatePrimary\n");
+    tpm2_test_CreatePrimary(s);
 
 }
 

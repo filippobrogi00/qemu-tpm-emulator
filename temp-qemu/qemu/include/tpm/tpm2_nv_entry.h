@@ -31,13 +31,12 @@ typedef struct NVEntry {
     uint16_t nameLen;
 
     /* backing data */
-    //uint32_t data_off;         /* offset in TPM NV bank (from s->nv_bank_ptr) */
     uint8_t *data;               /* host pointer to encrypted area: s->nv_bank_ptr + data_off */
     uint16_t dataLen;            /* equals pub.dataSize */
 
     /* per-entry IV for AES-CFB or AES-GCM */
-    //uint8_t iv[16];
-
+    uint8_t *iv_ptr;              /* 16 bytes for AES block size */
+    
     /* mirrors of dynamic bits */
     bool written;                /* TPMA_NV_WRITTEN (set after first init/write)  */
     bool readLocked;             /* TPMA_NV_READLOCKED – clears on Startup(CLEAR) */

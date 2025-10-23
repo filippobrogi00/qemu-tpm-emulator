@@ -62,10 +62,13 @@ static NVEntry *nv_entry_alloc(TPM2State *s,
     }
 
     /* Check space in NV bank */
-    if (s->nv_alloc_offset + dataSize > s->nv_bank_size) {
-        TPM2_LOG("nv_entry_alloc: NV bank full (need=%u bytes)\n", dataSize);
-        return NULL;
+    size_t need = 16 + dataSize;
+    if (s->nv_alloc_offset + need > s->nv_bank_size)
+     {
+        TPM2_LOG("nv_entry_alloc: NV bank full (need=%u bytes)\n", need);
+        return NULL; //this is not the correct error code.
     }
+
 
     NVEntry *e = g_malloc0(sizeof(NVEntry));
 
@@ -76,19 +79,22 @@ static NVEntry *nv_entry_alloc(TPM2State *s,
     memset(e->pub.authPolicy, 0, sizeof(e->pub.authPolicy));
 
     /* Assign a slice of the NV bank */
-    e->data    = s->nv_bank_ptr + s->nv_alloc_offset;
+    uint8_t *base = s->nv_bank_ptr + s->nv_alloc_offset;
+    e->iv_ptr = base;                /* first 16 bytes */
+    e->data   = base + 16;          
     e->dataLen = dataSize;
+    memset(e->iv_ptr, 0, 16);
     memset(e->data, 0, e->dataLen);
 
     /* Advance allocation cursor */
-    s->nv_alloc_offset += dataSize;
+    s->nv_alloc_offset += need;
 
     e->written      = false;
     e->readLocked   = false;
     e->writeLocked  = false;
 
     TPM2_LOG("nv_entry_alloc: index=0x%08X offset=%zu size=%u\n",
-             index, s->nv_alloc_offset - dataSize, dataSize);
+             index, s->nv_alloc_offset - need, need);
 
     return e;
 }
@@ -340,36 +346,47 @@ void tpm2_nv_cleanup(TPM2State *s)
     s->nv_dirty = false;
 }
 
-
+/*
 static TPM_RC nv_write_crypt_to_bank(TPM2State *s, NVEntry *e,
-                                      const uint8_t *plain, uint16_t len, uint16_t offset)
+                                     const uint8_t *plain, uint16_t len, uint16_t offset)
 {
-    if (!e || !plain) return TPM_RC_FAILURE;
-    if (offset + len > e->pub.dataSize) return TPM_RC_SIZE;
+    if (!s || !e || !plain) return TPM_RC_FAILURE; 
+    if ((uint32_t)offset + len > e->dataLen) return TPM_RC_SIZE; //Data is too big to be written into a nvEntry
 
-    /* Optional: re-roll IV on each write for stronger forward secrecy */
-    uint8_t *iv_ptr = nv_bank_at(s, e->data_off - 16); //This is the iv pointer in the bank. We need to maintain it
-    //in memory so that when decrypting. it returns the correct data.
-    if (RAND_bytes(e->iv, 16) != 1) {
-        TPM2_LOG("[NV] RAND_bytes(IV) failed on write\n");
+    // Re-roll IV (optional but recommended)  //Iv needs to be maintaned per entry
+    if (RAND_bytes(e->iv_ptr, 16) != 1) {
+        TPM2_LOG("[NV] RAND_bytes(IV) failed\n");
         return TPM_RC_FAILURE;
     }
-    
-    memcpy(iv_ptr, e->iv, 16);
 
-    /* Encrypt in place from plaintext into bank ciphertext region */
-    uint8_t *ct = e->data + offset; //this is the crypted cypterhtext point from NV bank
+    //Encrypt plain → ciphertext in-place inside NV bank 
+    uint8_t *ct = e->data + offset;
     int outlen = TPM2_AES_CFB_Crypt(s->master_key, s->master_key_len,
-                                    iv_ptr, plain, len, ct, 1);
-    if (outlen <= 0) {
-        TPM2_LOG("[NV] Encrypt failed on write\n");
-        return TPM_RC_FAILURE;
-    }
+                                    e->iv_ptr, plain, len, ct, 1);
+    if (outlen <= 0) return TPM_RC_FAILURE;
+
     e->written = true;
     return TPM_RC_SUCCESS;
 }
+*/
 
 
+/*
+static TPM_RC nv_read_decrypt_from_bank(TPM2State *s, NVEntry *e,
+                                        uint8_t *out, uint16_t len, uint16_t offset)
+{
+    if (!s || !e || !out) return TPM_RC_FAILURE;
+    if ((uint32_t)offset + len > e->dataLen) return TPM_RC_SIZE;
+
+    uint8_t *ct = e->data + offset;
+    int outlen = TPM2_AES_CFB_Crypt(s->master_key, s->master_key_len,
+                                    e->iv_ptr, ct, len, out, 0);
+    return (outlen > 0) ? TPM_RC_SUCCESS : TPM_RC_FAILURE;
+}
+
+
+
+*/
 
 
 

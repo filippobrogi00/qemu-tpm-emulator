@@ -549,12 +549,14 @@ Found ninja-1.11.1 at /usr/bin/ninja
 Running postconf script '/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/symlink-install-tree.py'
 ninja: no work to do.
 /root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/meson introspect --targets --tests --benchmarks | /root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 -B scripts/mtest2make.py > Makefile.mtest
-[1/54] Generating qemu-version.h with a custom command (wrapped by meson to capture output)
-[2/42] Generating block.syms with a custom command (wrapped by meson to capture output)
-[3/38] Generating qemu.syms with a custom command (wrapped by meson to capture output)
-[4/38] Compiling C object libcommon.a.p/hw_tpm_tpm_hw.c.o
-../hw/tpm/tpm_hw.c:15: warning: "TPM2_LOG" redefined
-   15 | #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ## __VA_ARGS__)
+[1/55] Generating qemu-version.h with a custom command (wrapped by meson to capture output)
+[2/43] Generating block.syms with a custom command (wrapped by meson to capture output)
+[3/39] Generating qemu.syms with a custom command (wrapped by meson to capture output)
+[4/39] Compiling C object libcommon.a.p/hw_tpm_tpm_hw.c.o
+FAILED: libcommon.a.p/hw_tpm_tpm_hw.c.o 
+cc -m64 -Ilibcommon.a.p -Isubprojects/libvduse -I../subprojects/libvduse -I/usr/include/pixman-1 -I/usr/include/libpng16 -I/usr/include/SDL2 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/gio-unix-2.0 -I/usr/include/x86_64-linux-gnu -I/usr/include/webp -fdiagnostics-color=auto -Wall -Winvalid-pch -std=gnu11 -O2 -g -fstack-protector-strong -Wempty-body -Wendif-labels -Wexpansion-to-defined -Wformat-security -Wformat-y2k -Wignored-qualifiers -Wimplicit-fallthrough=2 -Winit-self -Wmissing-format-attribute -Wmissing-prototypes -Wnested-externs -Wold-style-declaration -Wold-style-definition -Wredundant-decls -Wshadow=local -Wstrict-prototypes -Wtype-limits -Wundef -Wvla -Wwrite-strings -Wno-missing-include-dirs -Wno-psabi -Wno-shift-negative-value -isystem /root/tpm_updated/group7-TPM/temp-qemu/qemu/linux-headers -isystem linux-headers -iquote . -iquote /root/tpm_updated/group7-TPM/temp-qemu/qemu -iquote /root/tpm_updated/group7-TPM/temp-qemu/qemu/include -iquote /root/tpm_updated/group7-TPM/temp-qemu/qemu/host/include/x86_64 -iquote /root/tpm_updated/group7-TPM/temp-qemu/qemu/host/include/generic -iquote /root/tpm_updated/group7-TPM/temp-qemu/qemu/tcg/i386 -pthread -mcx16 -msse2 -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-strict-aliasing -fno-common -fwrapv -ftrivial-auto-var-init=zero -fzero-call-used-regs=used-gpr -fPIE -D_REENTRANT -MD -MQ libcommon.a.p/hw_tpm_tpm_hw.c.o -MF libcommon.a.p/hw_tpm_tpm_hw.c.o.d -o libcommon.a.p/hw_tpm_tpm_hw.c.o -c ../hw/tpm/tpm_hw.c
+../hw/tpm/tpm_hw.c:16: warning: "TPM2_LOG" redefined
+   16 | #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ## __VA_ARGS__)
       | 
 In file included from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_nv_entry.h:9,
                  from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_device.h:7,
@@ -562,51 +564,77 @@ In file included from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tp
 /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_nv.h:10: note: this is the location of the previous definition
    10 | #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ##__VA_ARGS__)
       | 
+../hw/tpm/tpm_hw.c:89:8: warning: no previous prototype for ‘test_CreatePrimary’ [-Wmissing-prototypes]
+   89 | TPM_RC test_CreatePrimary(TPM2State *s)
+      |        ^~~~~~~~~~~~~~~~~~
+../hw/tpm/tpm_hw.c: In function ‘test_CreatePrimary’:
+../hw/tpm/tpm_hw.c:135:36: warning: passing argument 7 of ‘tpm2_CreatePrimary’ from incompatible pointer type [-Wincompatible-pointer-types]
+  135 |                                    &outPublic,
+      |                                    ^~~~~~~~~~
+      |                                    |
+      |                                    TPM2B_PUBLIC *
+In file included from ../hw/tpm/tpm_hw.c:14:
+/root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_crypto.h:42:39: note: expected ‘TPM_HANDLE *’ {aka ‘unsigned int *’} but argument is of type ‘TPM2B_PUBLIC *’
+   42 |                           TPM_HANDLE *objectHandle,
+      |                           ~~~~~~~~~~~~^~~~~~~~~~~~
+../hw/tpm/tpm_hw.c:136:36: warning: passing argument 8 of ‘tpm2_CreatePrimary’ from incompatible pointer type [-Wincompatible-pointer-types]
+  136 |                                    &name);
+      |                                    ^~~~~
+      |                                    |
+      |                                    TPM2B_NAME *
+/root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_crypto.h:43:41: note: expected ‘TPM2B_PUBLIC *’ but argument is of type ‘TPM2B_NAME *’
+   43 |                           TPM2B_PUBLIC *outPublic,
+      |                           ~~~~~~~~~~~~~~^~~~~~~~~
+../hw/tpm/tpm_hw.c:129:17: error: too few arguments to function ‘tpm2_CreatePrimary’
+  129 |     TPM_RC rc = tpm2_CreatePrimary(s,
+      |                 ^~~~~~~~~~~~~~~~~~
+/root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_crypto.h:36:8: note: declared here
+   36 | TPM_RC tpm2_CreatePrimary(TPM2State *s,
+      |        ^~~~~~~~~~~~~~~~~~
 ../hw/tpm/tpm_hw.c: In function ‘tpm2_generate_rsa_key’:
-../hw/tpm/tpm_hw.c:91:9: warning: ‘RSA_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-   91 |         RSA_free(s->rsa_key);
+../hw/tpm/tpm_hw.c:159:9: warning: ‘RSA_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  159 |         RSA_free(s->rsa_key);
       |         ^~~~~~~~
 In file included from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_device.h:5:
 /usr/include/openssl/rsa.h:298:28: note: declared here
   298 | OSSL_DEPRECATEDIN_3_0 void RSA_free(RSA *r);
       |                            ^~~~~~~~
-../hw/tpm/tpm_hw.c:95:5: warning: ‘RSA_new’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-   95 |     s->rsa_key = RSA_new();
+../hw/tpm/tpm_hw.c:163:5: warning: ‘RSA_new’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  163 |     s->rsa_key = RSA_new();
       |     ^
 /usr/include/openssl/rsa.h:206:28: note: declared here
   206 | OSSL_DEPRECATEDIN_3_0 RSA *RSA_new(void);
       |                            ^~~~~~~
-../hw/tpm/tpm_hw.c:96:5: warning: ‘RSA_generate_key_ex’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-   96 |     RSA_generate_key_ex(s->rsa_key, 2048, bn, NULL);
+../hw/tpm/tpm_hw.c:164:5: warning: ‘RSA_generate_key_ex’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  164 |     RSA_generate_key_ex(s->rsa_key, 2048, bn, NULL);
       |     ^~~~~~~~~~~~~~~~~~~
 /usr/include/openssl/rsa.h:265:27: note: declared here
   265 | OSSL_DEPRECATEDIN_3_0 int RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e,
       |                           ^~~~~~~~~~~~~~~~~~~
 ../hw/tpm/tpm_hw.c: In function ‘tpm2_mmio_write’:
-../hw/tpm/tpm_hw.c:136:25: warning: ‘RSA_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-  136 |                         RSA_free(s->rsa_key);
+../hw/tpm/tpm_hw.c:204:25: warning: ‘RSA_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  204 |                         RSA_free(s->rsa_key);
       |                         ^~~~~~~~
 /usr/include/openssl/rsa.h:298:28: note: declared here
   298 | OSSL_DEPRECATEDIN_3_0 void RSA_free(RSA *r);
       |                            ^~~~~~~~
 ../hw/tpm/tpm_hw.c: In function ‘tpm2_reset’:
-../hw/tpm/tpm_hw.c:210:9: warning: ‘RSA_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-  210 |         RSA_free(s->rsa_key);
+../hw/tpm/tpm_hw.c:278:9: warning: ‘RSA_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  278 |         RSA_free(s->rsa_key);
       |         ^~~~~~~~
 /usr/include/openssl/rsa.h:298:28: note: declared here
   298 | OSSL_DEPRECATEDIN_3_0 void RSA_free(RSA *r);
       |                            ^~~~~~~~
 ../hw/tpm/tpm_hw.c: In function ‘tpm2_init’:
-../hw/tpm/tpm_hw.c:230:16: warning: unused variable ‘s’ [-Wunused-variable]
-  230 |     TPM2State *s = TPM2(obj);
+../hw/tpm/tpm_hw.c:298:16: warning: unused variable ‘s’ [-Wunused-variable]
+  298 |     TPM2State *s = TPM2(obj);
       |                ^
-[5/38] Linking target qemu-system-arm
-[6/38] Generating tests/include/QAPI test (include) with a custom command
+ninja: build stopped: subcommand failed.
 arm-none-eabi-ld -T linker.ld startup.o main.o uart.o -o main.elf
 ../qemu/build/qemu-system-arm -M nxps32k3x8evb -nographic -kernel main.elf
 [TPM2_NV_DefineSpace] tag=0x8001 size=12 rc=0x0
 [UART]TPM2 Example Start
-Random Value: 633203119
+Random Value: 3286680965
 RSA KEY GEN: 1
 Enter message to encrypt:
 >> 
