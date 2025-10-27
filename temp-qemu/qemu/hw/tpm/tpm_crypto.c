@@ -178,12 +178,16 @@ TPM2_AES_CFB_Crypt (const uint8_t *key, int keylen,
       goto cleanup;
     }
 
-  // Set cipher keylength
+  // Prime the context with the cipher before adjusting the key length
+  if (EVP_CipherInit_ex (ctx, cipher, NULL, NULL, NULL, enc) != 1)
+    goto cleanup;
+
+  // Set key length
   if (EVP_CIPHER_CTX_set_key_length (ctx, keylen) != 1)
     goto cleanup;
 
-  // Encrypt using AES, leave provider, key, and IV empty
-  if (EVP_CipherInit_ex (ctx, cipher, NULL, key, iv, enc) != 1)
+  // Now set key and IV
+  if (EVP_CipherInit_ex (ctx, NULL, NULL, key, iv, enc) != 1)
     goto cleanup;
 
   int outlen = 0, tmplen = 0;
