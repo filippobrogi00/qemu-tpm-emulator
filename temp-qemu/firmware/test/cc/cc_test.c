@@ -128,7 +128,7 @@ void
 TPM2_TEST_CC ()
 {
   printf ("\n=============================\n");
-  printf (" TPM2 UART TEST SUITE STARTED\n");
+  printf (" TPM2 CC TEST SUITE STARTED\n");
   printf ("==============================\n\n");
 
   TPM_CMD_HEADER *hdr;

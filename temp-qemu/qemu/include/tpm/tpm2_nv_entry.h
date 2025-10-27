@@ -17,7 +17,7 @@
 
 
 /* One NV entry instance (TPM_HT_NV_INDEX flavor).
-   - Public area is TPMS_NV_PUBLIC (Part 2 §13.5)
+   - Public area is TPMS_NV_PUBLIC 
    - Name is computed from marshaled public area using nameAlg (Part 3 ReadPublic notes)
    - Data buffer holds the index’s bytes (size==public.dataSize).
    - written/readLocked/writeLocked are mirrors of TPMA_NV state that can be transient. */
