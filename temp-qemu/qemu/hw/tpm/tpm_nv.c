@@ -10,6 +10,8 @@
 #include "tpm/tpm2_device.h"
 #include "tpm/tpm2_nv.h"
 #include "tpm/tpm2_nv_entry.h"
+
+
 #include "tpm/tpm2_rc.h"
 #include "tpm/tpm2_structures.h"
 #include "tpm/tpm2_interfaces.h" 
@@ -346,12 +348,14 @@ void tpm2_nv_cleanup(TPM2State *s)
     s->nv_dirty = false;
 }
 
-/*
-static TPM_RC nv_write_crypt_to_bank(TPM2State *s, NVEntry *e,
+
+TPM_RC nv_write_crypt_to_bank(TPM2State *s, NVEntry *e,
                                      const uint8_t *plain, uint16_t len, uint16_t offset)
 {
     if (!s || !e || !plain) return TPM_RC_FAILURE; 
     if ((uint32_t)offset + len > e->dataLen) return TPM_RC_SIZE; //Data is too big to be written into a nvEntry
+    TPM2_LOG("[NV] nv_write_crypt_to_bank: len=%u offset=%u\n", len, offset);
+
 
     // Re-roll IV (optional but recommended)  //Iv needs to be maintaned per entry
     if (RAND_bytes(e->iv_ptr, 16) != 1) {
@@ -359,34 +363,45 @@ static TPM_RC nv_write_crypt_to_bank(TPM2State *s, NVEntry *e,
         return TPM_RC_FAILURE;
     }
 
+    TPM2_LOG("[NV] RANDS: ");
+
     //Encrypt plain → ciphertext in-place inside NV bank 
     uint8_t *ct = e->data + offset;
-    int outlen = TPM2_AES_CFB_Crypt(s->master_key, s->master_key_len,
+    TPM2_LOG("Params before Crypt: ");
+    TPM2_LOG("Key ptr: %p ", s->primary_sensitive.sensitiveArea.sensitive.ecc.buffer);
+    TPM2_LOG("IV ptr: %p ", e->iv_ptr);
+    TPM2_LOG("Plain ptr: %p ", plain);
+    TPM2_LOG("Ct ptr: %p ", ct);
+    TPM2_LOG("Len: %u\n", len);
+  
+    int outlen = TPM2_AES_CFB_Crypt(s->primary_sensitive.sensitiveArea.sensitive.ecc.buffer,s->primary_sensitive.sensitiveArea.sensitive.ecc.size,
                                     e->iv_ptr, plain, len, ct, 1);
-    if (outlen <= 0) return TPM_RC_FAILURE;
 
+                                    
+    if (outlen <= 0) return TPM_RC_FAILURE;
+    TPM2_LOG("[NV] After Crypt: ");
     e->written = true;
     return TPM_RC_SUCCESS;
 }
-*/
 
 
-/*
-static TPM_RC nv_read_decrypt_from_bank(TPM2State *s, NVEntry *e,
+
+TPM_RC nv_read_decrypt_from_bank(TPM2State *s, NVEntry *e,
                                         uint8_t *out, uint16_t len, uint16_t offset)
 {
-    if (!s || !e || !out) return TPM_RC_FAILURE;
-    if ((uint32_t)offset + len > e->dataLen) return TPM_RC_SIZE;
+    if (!s || !e || !out)
+        return TPM_RC_FAILURE;
+
+    if ((uint32_t)offset + len > e->dataLen)
+        return TPM_RC_SIZE;
 
     uint8_t *ct = e->data + offset;
-    int outlen = TPM2_AES_CFB_Crypt(s->master_key, s->master_key_len,
-                                    e->iv_ptr, ct, len, out, 0);
+    int outlen = TPM2_AES_CFB_Crypt(
+        s->primary_sensitive.sensitiveArea.sensitive.ecc.buffer,
+        s->primary_sensitive.sensitiveArea.sensitive.ecc.size,
+        e->iv_ptr, ct, len, out, 0);   //decrypt stuff
+
     return (outlen > 0) ? TPM_RC_SUCCESS : TPM_RC_FAILURE;
 }
-
-
-
-*/
-
 
 

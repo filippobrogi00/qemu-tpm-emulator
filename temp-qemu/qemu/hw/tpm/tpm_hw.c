@@ -90,7 +90,7 @@ static void tpm2_test_definespace(TPM2State *s)
 
 TPM_RC tpm2_test_CreatePrimary(TPM2State *s)
 {
-    TPM2_LOG("---- [TPM TEST] CreatePrimary start ----\n");
+
 
     /* 1. Initialize seeds and proofs */
     for (int i = 0; i < 32; i++) {
@@ -126,7 +126,6 @@ TPM_RC tpm2_test_CreatePrimary(TPM2State *s)
     TPM2B_NAME name;
     memset(&outPublic, 0, sizeof(outPublic));
     memset(&name, 0, sizeof(name));
-    TPM2_LOG("---- [TPM TEST] CreatePrimary start 2----\n");
     /* 5. Invoke CreatePrimary (objectHandle = NULL) */
     TPM_RC rc = tpm2_CreatePrimary(s,
                                    TPM_RH_OWNER,
@@ -168,10 +167,62 @@ TPM_RC tpm2_test_CreatePrimary(TPM2State *s)
         qemu_log("%02X", name.name[i]);
     qemu_log("\n");
 
-    TPM2_LOG("---- [TPM TEST] CreatePrimary done ----\n\n");
-
     return TPM_RC_SUCCESS;
 }
+
+
+
+static void tpm2_test_nv_encrypt_decrypt(TPM2State *s)
+{
+    TPM2_LOG("---- [TPM TEST] NV Encrypt/Decrypt start ----\n");
+
+    /* 1. Ensure NV entry exists (use one created by DefineSpace) */
+    uint32_t index = 0x1500016;
+    NVEntry *e = g_hash_table_lookup(s->nv_map, GUINT_TO_POINTER(index));
+    if (!e) {
+        TPM2_LOG("[TEST] NV index 0x%08X not found\n", index);
+        return;
+    }
+
+    const char *msg = "TPM NV TEST DATA";
+    uint8_t ciphertext[64] = {0};
+    uint8_t decrypted[64]  = {0};
+
+    TPM2_LOG("[TEST] Plaintext: %s\n", msg);
+
+    /* 2. Encrypt plaintext into NV bank */
+    TPM_RC rc = nv_write_crypt_to_bank(s, e, (const uint8_t *)msg, strlen(msg), 0);
+    TPM2_LOG("[TEST] nv_write_crypt_to_bank rc=0x%X\n", rc);
+
+    /* 3. Dump encrypted bytes */
+    TPM2_LOG("[TEST] Ciphertext (in NV bank): ");
+    for (int i = 0; i < strlen(msg); i++)
+        qemu_log("%02X ", e->data[i]);
+    qemu_log("\n");
+
+    /* 4. Read and decrypt back */
+    rc = nv_read_decrypt_from_bank(s, e, decrypted, strlen(msg), 0);
+    TPM2_LOG("[TEST] nv_read_decrypt_from_bank rc=0x%X\n", rc);
+
+    decrypted[strlen(msg)] = '\0';
+    TPM2_LOG("[TEST] Decrypted: %s\n", decrypted);
+
+    /* 5. Compare */
+    if (memcmp(msg, decrypted, strlen(msg)) == 0)
+        TPM2_LOG("[TEST] ✅ Encryption/Decryption OK\n");
+    else
+        TPM2_LOG("[TEST] ❌ Mismatch!\n");
+
+    TPM2_LOG("---- [TPM TEST] NV Encrypt/Decrypt end ----\n");
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -286,6 +337,9 @@ static void tpm2_realize(DeviceState *dev, Error **errp)
     tpm2_test_definespace(s);
     TPM2_LOG("[DEBUG]Running CreatePrimary\n");
     tpm2_test_CreatePrimary(s);
+    TPM2_LOG("[DEBUG]Running nv_encrypt_decrypt_test\n");
+    tpm2_test_nv_encrypt_decrypt(s);
+
 
 }
 
