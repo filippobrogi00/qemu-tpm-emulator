@@ -14,12 +14,11 @@
 #define UART_F_RXFF (1 << 5) // Receive FIFO Full
 
 void UART_init(void);
-// void UART_printf(const char *s);
 void UART_putstr(const char *s);
 void UART_printf(const char *fmt, ...);
 void UART_putc(const char c);
 char UART_getc(void);
 void UART_gets(char *s, int maxlen);
-void UART_print_hex(const uint8_t *data, uint32_t len);
+void UART_print_hex (const uint8_t *data, uint32_t len);
 
 #endif

@@ -8,36 +8,22 @@
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
 
-#include "command_chain/cc_header.h"
+#include "tpm/command_chain/cc_header.h"
+#include "tpm/command_chain/cc_unmarshal.h"
+#include "tpm/command_chain/cc_marshal.h"
 #include "tpm/tpm2_rc.h"
 #include "tpm/tpm2_cc.h"
-
 #include "tpm/tpm2_nv.h"
 
 #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ## __VA_ARGS__)
 
 static void tpm2_reset(DeviceState *dev);
 static void tpm2_process_command(TPM2State *s);
+static void build_error_response(TPM2State *s, TPM_RC rc);
 
 static void tpm2_generate_random(TPM2State *s) {
     RAND_bytes(s->random_data, sizeof(s->random_data));
 }
-
-static uint32_t Unmarshal_UINT16_BE(const uint8_t *buffer, uint16_t *value)
-{
-    *value = ((uint16_t)buffer[0] << 8) | (uint16_t)buffer[1];
-    return 2;
-}
-
-static uint32_t Unmarshal_UINT32_BE(const uint8_t *buffer, uint32_t *value)
-{
-    *value = ((uint32_t)buffer[0] << 24) |
-             ((uint32_t)buffer[1] << 16) |
-             ((uint32_t)buffer[2] << 8)  |
-             (uint32_t)buffer[3];
-    return 4;
-}
-
 
 static void tpm2_generate_rsa_key(TPM2State *s) {
     if (s->rsa_key) {
@@ -57,13 +43,11 @@ static uint64_t tpm2_mmio_read(void *opaque, hwaddr addr, unsigned size) {
     switch (addr) {
         case TPM2_CTRL_REG:
             return s->ctrl;
+        
         case TPM2_STATUS_REG:
             return s->state;
-        case TPM2_RANDOM_REG:
-            //This register is no longer used for simple commands
-            //return *(uint32_t *)(s->random_data);
+        
         case TPM2_DATA_REG:
-            //return s->key_generated;
             //Read from the response buffer (FIFO)
             if (s->state != TPM_STATE_SENDING) {
                 TPM2_LOG("Read from DATA_REG in invalid state %d\n", s->state);
@@ -73,20 +57,22 @@ static uint64_t tpm2_mmio_read(void *opaque, hwaddr addr, unsigned size) {
                 TPM2_LOG("Response buffer underflow\n");
                 return 0;
             }
-            //Read 4 bytes at a time
-            //val = *(uint32_t *)(s->response_buffer + s->resp_idx);
+
+            //Read 4 bytes in big-endian format
             val = ((uint32_t)s->response_buffer[s->resp_idx + 0] << 24) |
                   ((uint32_t)s->response_buffer[s->resp_idx + 1] << 16) |
                   ((uint32_t)s->response_buffer[s->resp_idx + 2] << 8)  |
                   ((uint32_t)s->response_buffer[s->resp_idx + 3]);
             s->resp_idx += 4;
-            //If all data sent return to idle
+
+            //If all data sent, return to idle
             if (s->resp_idx >= s->resp_size) {
                 s->state = TPM_STATE_IDLE;
                 s->resp_idx = 0;
                 s->resp_size = 0;
             }
             return val;
+
         default:
             TPM2_LOG("Invalid read address: 0x%" HWADDR_PRIx "\n", addr);
             return 0;
@@ -118,6 +104,25 @@ static void tpm2_mmio_write(void *opaque, hwaddr addr, uint64_t value, unsigned 
                     return;
                 }
 
+                
+                // Extract actual command size from header (bytes 2-5)
+                uint32_t actual_size = ((uint32_t)s->command_buffer[2] << 24) |
+                                      ((uint32_t)s->command_buffer[3] << 16) |
+                                      ((uint32_t)s->command_buffer[4] << 8)  |
+                                      ((uint32_t)s->command_buffer[5]);
+
+                // Validate that we received enough data
+                if (actual_size > s->cmd_size) {
+                    TPM2_LOG("Command size mismatch: header=%u, received=%u\n", 
+                            actual_size, s->cmd_size);
+                    s->state = TPM_STATE_IDLE;
+                    build_error_response(s, TPM_RC_COMMAND_SIZE);
+                    return;
+                }
+                
+                // Truncate cmd_size to actual command size (ignore padding)
+                s->cmd_size = actual_size;
+
                 s->state = TPM_STATE_PROCESSING;
                 TPM2_LOG("State -> PROCESSING (Cmd size: %u)\n", s->cmd_size);
 
@@ -128,30 +133,6 @@ static void tpm2_mmio_write(void *opaque, hwaddr addr, uint64_t value, unsigned 
                 }
             }
             break;
-
-            // switch (value) {
-            //     case TPM2_CMD_GEN_RANDOM:
-            //         tpm2_generate_random(s);
-            //         s->status = 0;
-            //         break;
-            //     case TPM2_CMD_GEN_RSA:
-            //         tpm2_generate_rsa_key(s);
-            //         s->status = 0;
-            //         break;
-            //     case TPM2_CMD_CLEAR:
-            //         if (s->rsa_key) {
-            //             RSA_free(s->rsa_key);
-            //             s->rsa_key = NULL;
-            //         }
-            //         memset(s->random_data, 0, sizeof(s->random_data));
-            //         s->key_generated = 0;
-            //         s->status = 0;
-            //         break;
-            //     default:
-            //         s->status = 1;
-            //         break;
-            // }
-            // break;
         
         case TPM2_DATA_REG:
             if (s->state != TPM_STATE_RECEIVING) {
@@ -164,7 +145,7 @@ static void tpm2_mmio_write(void *opaque, hwaddr addr, uint64_t value, unsigned 
                 return;
             }
 
-            //*(uint32_t *)(s->command_buffer + s->cmd_size) = (uint32_t)value;
+            // Store in big-endian format
             s->command_buffer[s->cmd_size + 0] = (val32 >> 24) & 0xFF;
             s->command_buffer[s->cmd_size + 1] = (val32 >> 16) & 0xFF;
             s->command_buffer[s->cmd_size + 2] = (val32 >> 8)  & 0xFF;
@@ -178,6 +159,9 @@ static void tpm2_mmio_write(void *opaque, hwaddr addr, uint64_t value, unsigned 
     }
 }
 
+/**
+ * @brief Build and send error response with proper header
+ */
 static void build_error_response(TPM2State *s, TPM_RC rc) {
     TPM_RSP_HEADER header;
     header.tag = TPM_ST_NO_SESSIONS;
@@ -193,140 +177,234 @@ static void build_error_response(TPM2State *s, TPM_RC rc) {
 
 }
 
+/**
+ * @brief Build successful response with proper header
+ */
+static void build_success_response(TPM2State *s, UINT32 bodySize) {
+    TPM_RSP_HEADER header;
+    header.tag = TPM_ST_NO_SESSIONS;
+    header.size = TPM_RSP_HEADER_SIZE + bodySize;
+    header.code = TPM_RC_SUCCESS;
+
+    UINT32 bytesWritten;
+    // Marshal header at the beginning, body is already there
+    MarshalResponseHeader(s->response_buffer, sizeof(s->response_buffer), &header, &bytesWritten);
+
+    UINT32 actual_size = header.size;
+    UINT32 padded_size = (actual_size + 3) & ~3; // Round up to multiple of 4
+    
+    // Zero out padding bytes
+    for (UINT32 i = actual_size; i < padded_size; i++) {
+        s->response_buffer[i] = 0;
+    }
+    
+    s->resp_size = padded_size;  // Use padded size for transmission
+    s->resp_idx = 0;
+    s->state = TPM_STATE_SENDING;
+
+    TPM2_LOG("Response: actual=%u, padded=%u\n", actual_size, padded_size);
+}
+
+/**
+ * @brief Process TPM2_GetRandom command
+ */
+static void handle_GetRandom(TPM2State *s, const UINT8 *cmdBody, UINT32 bodySize) {
+    TPM_RC rc;
+    UINT16 bytesRequested;
+    UINT32 bytesRead, bytesWritten;
+    
+    // Unmarshal parameters
+    rc = Unmarshal_GetRandom(cmdBody, bodySize, &bytesRequested, &bytesRead);
+    if (rc != TPM_RC_SUCCESS) {
+        TPM2_LOG("Failed to unmarshal GetRandom: 0x%X\n", rc);
+        build_error_response(s, rc);
+        return;
+    }
+    
+    // Validate request
+    if (bytesRequested > sizeof(s->random_data)) {
+        TPM2_LOG("Requested too many bytes: %u\n", bytesRequested);
+        build_error_response(s, TPM_RC_SIZE);
+        return;
+    }
+    
+    TPM2_LOG("GetRandom: requesting %u bytes\n", bytesRequested);
+    
+    // Generate random data
+    tpm2_generate_random(s);
+    
+    // Marshal response body (after header space)
+    rc = Marshal_GetRandom_Response(
+        s->response_buffer + TPM_RSP_HEADER_SIZE,
+        sizeof(s->response_buffer) - TPM_RSP_HEADER_SIZE,
+        s->random_data,
+        bytesRequested,
+        &bytesWritten);
+    
+    if (rc != TPM_RC_SUCCESS) {
+        TPM2_LOG("Failed to marshal GetRandom response: 0x%X\n", rc);
+        build_error_response(s, rc);
+        return;
+    }
+    
+    build_success_response(s, bytesWritten);
+}
+
+/**
+ * @brief Process TPM2_CreatePrimary command
+ */
+static void handle_CreatePrimary(TPM2State *s, const UINT8 *cmdBody, UINT32 bodySize) {
+    TPM_RC rc;
+    CreatePrimary_Params params;
+    CreatePrimary_Response response;
+    UINT32 bytesRead, bytesWritten;
+    
+    // Unmarshal parameters
+    rc = Unmarshal_CreatePrimary(cmdBody, bodySize, &params, &bytesRead);
+    if (rc != TPM_RC_SUCCESS) {
+        TPM2_LOG("Failed to unmarshal CreatePrimary: 0x%X\n", rc);
+        build_error_response(s, rc);
+        return;
+    }
+    
+    TPM2_LOG("CreatePrimary: authHandle=0x%X\n", params.primaryHandle);
+    
+    // Generate RSA key
+    tpm2_generate_rsa_key(s);
+    if (!s->key_generated) {
+        TPM2_LOG("Failed to generate RSA key\n");
+        build_error_response(s, TPM_RC_FAILURE);
+        return;
+    }
+    
+    // Build response structure
+    // For simplicity, we create a minimal response
+    // In production, we'd populate all fields properly
+    response.objectHandle = 0x80000001; // Transient handle
+    
+    // Minimal outPublic (just enough to be valid)
+    response.outPublicSize = 14; // Minimal size
+    memset(response.outPublic, 0, sizeof(response.outPublic));
+    
+    // Empty creation data
+    response.creationDataSize = 0;
+    
+    // Empty creation hash
+    response.creationHashSize = 0;
+    
+    // Creation ticket
+    response.creationTicketTag = TPM_ST_CREATION;
+    response.creationTicketHierarchy = params.primaryHandle;
+    response.creationTicketDigestSize = 0;
+    
+    // Empty name for now
+    response.nameSize = 0;
+    
+    // Marshal response body
+    rc = Marshal_CreatePrimary_Response(
+        s->response_buffer + TPM_RSP_HEADER_SIZE,
+        sizeof(s->response_buffer) - TPM_RSP_HEADER_SIZE,
+        &response,
+        &bytesWritten);
+    
+    if (rc != TPM_RC_SUCCESS) {
+        TPM2_LOG("Failed to marshal CreatePrimary response: 0x%X\n", rc);
+        build_error_response(s, rc);
+        return;
+    }
+    
+    build_success_response(s, bytesWritten);
+}
+
+/**
+ * @brief Process TPM2_NV_DefineSpace command
+ */
+static void handle_NV_DefineSpace(TPM2State *s, const UINT8 *cmdBody, UINT32 bodySize) {
+    TPM_RC rc;
+    NV_DefineSpace_Params params;
+    UINT32 bytesRead;
+    
+    // Unmarshal parameters
+    rc = Unmarshal_NV_DefineSpace(cmdBody, bodySize, &params, &bytesRead);
+    if (rc != TPM_RC_SUCCESS) {
+        TPM2_LOG("Failed to unmarshal NV_DefineSpace: 0x%X\n", rc);
+        build_error_response(s, rc);
+        return;
+    }
+    
+    TPM2_LOG("NV_DefineSpace: authHandle=0x%X, nvIndex=0x%X, dataSize=%u\n",
+             params.authHandle, params.nvIndex, params.dataSize);
+    
+    // Convert to legacy structures for backend
+    TPM2B_AUTH auth;
+    auth.size = params.authSize;
+    memcpy(auth.buffer, params.auth, params.authSize);
+    
+    TPM2B_NV_PUBLIC public;
+    public.size = params.publicSize;
+    public.nvPublic.nvIndex = params.nvIndex;
+    public.nvPublic.nameAlg = params.nameAlg;
+    memcpy(&public.nvPublic.attributes, &params.attributes, sizeof(TPMA_NV));
+    public.nvPublic.authPolicySize = params.authPolicySize;
+    memcpy(public.nvPublic.authPolicy, params.authPolicy, params.authPolicySize);
+    public.nvPublic.dataSize = params.dataSize;
+    
+    // Call backend function
+    rc = tpm2_nv_define_space(s, params.authHandle, &auth, &public);
+    
+    if (rc != TPM_RC_SUCCESS) {
+        TPM2_LOG("tpm2_nv_define_space failed: 0x%X\n", rc);
+        build_error_response(s, rc);
+        return;
+    }
+    
+    // NV_DefineSpace has no response body
+    build_success_response(s, 0);
+}
+
+/**
+ * @brief Main command processing function
+ */
 static void tpm2_process_command(TPM2State *s) {
     TPM_CMD_HEADER header;
     UINT32 rc;
 
+    // Validate and parse header
     rc = TPM2_ValidateCommandHeader(s->command_buffer, s->cmd_size, &header);
-
     if (rc != TPM_RC_SUCCESS) {
         TPM2_LOG("TPM2_ValidateCommandHeader failed: 0x%X\n", rc);
         build_error_response(s, rc);
         return;
     }
 
-    // TPM_RC rc = UnmarshalCommandHeader(s->command_buffer, s->cmd_size, &header, &bytesRead);
-    // if (rc != TPM_RC_SUCCESS) {
-    //     TPM2_LOG("Invalid command header: 0x%X\n", rc);
-    //     build_error_response(s, rc);
-    //     return;
-    // }
-    // if (header.size != s->cmd_size) {
-    //     TPM2_LOG("Command size mismatch. Header: %u, Received %u\n", header.size, s->cmd_size);
-    //     build_error_response(s, TPM_RC_COMMAND_SIZE);
-    //     return;
-    // }
+    // Validate TPM mode
+    rc = TPM2_ValidateMode(&header,s);
+    if (rc != TPM_RC_SUCCESS) {
+        TPM2_LOG("TPM2_ValidateMode failed: 0x%X\n", rc);
+        build_error_response(s, rc);
+        return;
+    }
+
+    // Point to command body (after header)
+    const UINT8 *cmdBody = s->command_buffer + TPM_CMD_HEADER_SIZE;
+    UINT32 bodySize = s->cmd_size - TPM_CMD_HEADER_SIZE;
 
     switch (header.code) {
         case TPM_CC_GetRandom:
-        {
             TPM2_LOG("Handling TPM_CC_GetRandom\n");
-            tpm2_generate_random(s);
-
-            TPM_RSP_HEADER rsp_header;
-            rsp_header.tag = TPM_ST_NO_SESSIONS;
-            rsp_header.code = TPM_RC_SUCCESS;
-            rsp_header.size = 10 + 2 + sizeof(s->random_data); //header + size + random data
-
-            UINT32 offset = 0;
-            MarshalResponseHeader(s->response_buffer, sizeof(s->response_buffer), &rsp_header, &offset);
-
-            s->response_buffer[offset++] = (sizeof(s->random_data) >> 8) & 0xFF;
-            s->response_buffer[offset++] = sizeof(s->random_data) & 0xFF;
-
-            memcpy(s->response_buffer + offset, s->random_data, sizeof(s->random_data));
-            offset += sizeof(s->random_data);
-
-            s->resp_size = offset;
-            s->resp_idx = 0;
-            s->state = TPM_STATE_SENDING;
+            handle_GetRandom(s, cmdBody, bodySize);
             break;
-        }
 
         case TPM_CC_CreatePrimary:
-        {
             TPM2_LOG("Handling TPM_CC_CreatePrimary\n");
-            // TODO: Unmarshal parameters from s->command_buffer
-            // (e.g., inPublic, inSensitive)
-
-            // 1. Execute your existing RSA key generation function
-            tpm2_generate_rsa_key(s);
-            if (!s->key_generated) {
-                build_error_response(s, TPM_RC_FAILURE);
-                break;
-            }
-
-            // 2. Build the response (this is complex)
-            // For now, let's just send a success code
-            TPM2_LOG("RSA key generated.\n");
-
-            // --- Build a simple "Success" response ---
-            TPM_RSP_HEADER rsp_header;
-            rsp_header.tag = TPM_ST_NO_SESSIONS;
-            rsp_header.code = TPM_RC_SUCCESS;
-            
-            // This is a placeholder. A real response is huge.
-            // We'll just send a 10-byte success header for now.
-            rsp_header.size = 10; 
-
-            UINT32 offset = 0;
-            MarshalResponseHeader(s->response_buffer, sizeof(s->response_buffer), &rsp_header, &offset);
-            
-            // TODO: Marshal the real response body:
-            // - Marshal handle
-            // - Marshal outPublic
-            // - Marshal creationData
-            // - Marshal creationHash
-            // - Marshal creationTicket
-            // - Marshal outPrivate
-            // And update rsp_header.size *before* marshaling it
-
-            s->resp_size = offset;
-            s->resp_idx = 0;
-            s->state = TPM_STATE_SENDING;
+            handle_CreatePrimary(s, cmdBody, bodySize);
             break;
-        }
 
         case TPM_CC_NV_DefineSpace:
-        {
             TPM2_LOG("Handling TPM_CC_NV_DefineSpace\n");
-            TPM_RC rc;
-            uint32_t offset = TPM_CMD_HEADER_SIZE;
-
-            // 1. Unmarshal parameters from the 32-byte command
-            TPMI_RH_PROVISION authHandle;
-            TPM2B_AUTH auth = {0};
-            TPM2B_NV_PUBLIC public = {0};
-
-            // Unmarshal authHandle (4 bytes)
-            offset += Unmarshal_UINT32_BE(s->command_buffer + offset, &authHandle);
-
-            // Unmarshal auth.size (2 bytes)
-            offset += Unmarshal_UINT16_BE(s->command_buffer + offset, &auth.size);
-            // (Skipping auth.buffer as size is 0 for this command)
-
-            // Unmarshal public.size (2 bytes)
-            offset += Unmarshal_UINT16_BE(s->command_buffer + offset, &public.size);
-            if (public.size != 14) {
-                build_error_response(s, TPM_RC_SIZE);
-                break;
-            }
-
-            // Unmarshal public.nvPublic (14 bytes)
-            offset += Unmarshal_UINT32_BE(s->command_buffer + offset, &public.nvPublic.nvIndex);
-            offset += Unmarshal_UINT16_BE(s->command_buffer + offset, &public.nvPublic.nameAlg);
-            offset += Unmarshal_UINT32_BE(s->command_buffer + offset, (uint32_t*)&public.nvPublic.attributes);
-            offset += Unmarshal_UINT16_BE(s->command_buffer + offset, &public.nvPublic.authPolicySize);
-            // (Skipping authPolicy as size is 0)
-            offset += Unmarshal_UINT16_BE(s->command_buffer + offset, &public.nvPublic.dataSize);
-
-            // 2. Call the backend function
-            rc = tpm2_nv_define_space(s, authHandle, &auth, &public);
-
-            // 3. Build the response
-            build_error_response(s, rc); // Just sends a 10-byte header
+            handle_NV_DefineSpace(s, cmdBody, bodySize);
+            build_error_response(s, rc);
             break;
-        }
 
         default:
             TPM2_LOG("Unsupported command code: 0x%X\n", header.code);
@@ -399,7 +477,6 @@ static const TypeInfo tpm2_info = {
 
 static void tpm2_register_types(void) {
     fprintf(stderr, "[DEBUG] tpm2_register_types called\n");
-    //sysbus_register_type(&tpm2_info);
     type_register_static(&tpm2_info);
 }
 

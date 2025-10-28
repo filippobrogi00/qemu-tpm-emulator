@@ -10,15 +10,6 @@ UART_init (void)
   UART0_CTRL    = 1;
 }
 
-// void UART_printf(const char *s)
-// {
-//     while (*s != '\0')
-//     {
-//         UART0_DATA = (unsigned int)(*s);
-//         s++;
-//     }
-// }
-
 void
 UART_putstr (const char *s)
 {
@@ -41,8 +32,25 @@ UART_printf (const char *fmt, ...)
     {
       if (*fmt == '%')
         {
-          fmt++;
-          switch (*fmt)
+            fmt++;
+            bool zero_pad = false;
+            int width = 0;
+
+            // Parse flags
+            if (*fmt == '0')
+            {
+                zero_pad = true;
+                fmt++;
+            }
+
+            // Parse width (e.g., 4 or 08)
+            while (*fmt >= '0' && *fmt <= '9')
+            {
+                width = width * 10 + (*fmt - '0');
+                fmt++;
+            }
+
+            switch (*fmt)
             {
             case 'c':
               {
@@ -58,65 +66,52 @@ UART_printf (const char *fmt, ...)
                 break;
               }
             case 'd':
-              {
-                int  val = va_arg (args, int);
-                char num[16];
-                bool neg = false;
-                if (val < 0)
-                  {
-                    neg = true;
-                    val = -val;
-                  }
-                int i = 0;
-                do
-                  {
-                    num[i++] = (val % 10) + '0';
-                    val /= 10;
-                  }
-                while (val > 0);
-                if (neg)
-                  *p++ = '-';
-                while (i--)
-                  *p++ = num[i];
-                break;
-              }
+            case 'u':
             case 'x':
             case 'X':
-              {
-                unsigned val = va_arg (args, unsigned);
-                char     num[16];
-                int      i = 0;
+            {
+                unsigned val;
+                bool neg = false;
+                if (*fmt == 'd')
+                {
+                    int v = va_arg(args, int);
+                    if (v < 0)
+                    {
+                        neg = true;
+                        val = -v;
+                    }
+                    else
+                        val = v;
+                }
+                else
+                    val = va_arg(args, unsigned);
+
+                char num[16];
+                int base = (*fmt == 'x' || *fmt == 'X') ? 16 : 10;
+                int i = 0;
                 do
-                  {
-                    int digit = val % 16;
-                    num[i++]  = (digit < 10) ? '0' + digit : ((*fmt == 'x') ? 'a' : 'A') + (digit - 10);
-                    val /= 16;
-                  }
-                while (val > 0);
-                *p++ = '0';
-                *p++ = 'x';
-                while (i--)
-                  *p++ = num[i];
-                break;
-              }
-            case 'u':
-              {
-                unsigned val = va_arg (args, unsigned);
-                char     num[16];
-                int      i = 0;
-                do
-                  {
-                    num[i++] = (val % 10) + '0';
-                    val /= 10;
-                  }
-                while (val > 0);
+                {
+                    int digit = val % base;
+                    num[i++] = (digit < 10) ? '0' + digit
+                                            : ((*fmt == 'x') ? 'a' : 'A') + (digit - 10);
+                    val /= base;
+                } while (val > 0);
+
+                if (neg)
+                    *p++ = '-';
+
+                // Add padding if needed
+                while (i < width)
+                    num[i++] = zero_pad ? '0' : ' ';
+
                 while (i--)
                   *p++ = num[i];
                 break;
               }
             default:
-              *p++ = '%';
-              *p++ = *fmt;
+                *p++ = '%';
+                *p++ = *fmt;
+                break;
             }
         }
       else
@@ -125,10 +120,10 @@ UART_printf (const char *fmt, ...)
         }
       fmt++;
     }
-  *p = '\0';
+    *p = '\0';
+    va_end(args);
 
-  va_end (args);
-  UART_putstr (buffer);
+    UART_putstr(buffer);
 }
 
 void
@@ -178,10 +173,8 @@ UART_print_hex (const uint8_t *data, uint32_t len)
 
   for (uint32_t i = 0; i < len; i++)
     {
-      // --- FIX: Manually print the two hex digits ---
       UART_putc (hex_digits[(data[i] >> 4) & 0x0F]);
       UART_putc (hex_digits[data[i] & 0x0F]);
-      // --- END FIX ---
 
       if ((i + 1) % 16 == 0)
         {

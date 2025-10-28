@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "../tpm/tpm2_base_types.h"
-#include "../tpm/tpm2_rc.h"
-#include "../tpm/tpm2_cc.h"
-#include "../tpm/tpm2_device.h"
+#include "../tpm2_base_types.h"
+#include "../tpm2_rc.h"
+#include "../tpm2_cc.h"
+#include "../tpm2_device.h"
 
 /******************************
  * CONSTANTS

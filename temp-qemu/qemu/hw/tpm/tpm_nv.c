@@ -1,11 +1,11 @@
+#include "qemu/osdep.h"
+#include "qemu/log.h"
 #include <glib.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "qemu/log.h"
-#include "qemu/osdep.h"
 /* TPM headers */
 #include "tpm/tpm2_device.h"
 #include "tpm/tpm2_handles.h"
@@ -14,7 +14,6 @@
 #include "tpm/tpm2_nv_entry.h"
 #include "tpm/tpm2_rc.h"
 #include "tpm/tpm2_structures.h"
-// #include "headers/tpm2_device.h"
 
 /* ---------------------------------------------------------------------
  * Constants required for compilation
@@ -143,8 +142,9 @@ tpm2_nv_define_space (TPM2State             *s,
 
   /* 1) Validate index range */
   /*if (nv->nvIndex < TPMI_RH_NV_INDEX_NV_FIRST ||
-      authHandle > TPMI_RH_NV_INDEX_PERMANENT_LAST)
-      return TPM_RC_VALUE;
+   *  authHandle > TPMI_RH_NV_INDEX_PERMANENT_LAST)
+   *  return TPM_RC_VALUE;
+   */
 
   /* 2) Validate data size */
   if (nv->nvIndex == 0 || dataSize > TPM2_NVSTORAGE_SIZE)
@@ -275,3 +275,5 @@ tpm2_nv_define_space (TPM2State             *s,
 
   return rc;
 }
+
+
