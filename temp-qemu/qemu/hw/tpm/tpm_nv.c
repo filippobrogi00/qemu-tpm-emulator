@@ -127,16 +127,6 @@ static inline void nv_entry_free(NVEntry *e)
 }
 
 
-/* Free an NVEntry and its associated data */
-static inline void nv_entry_free(NVEntry *e)
-{
-    if (!e)
-        return;
-    if (e->data)
-        e->data = NULL;  // owned by NV bank
-
-    g_free(e);
-}
 
 static inline bool
 tpm2_nv_flush_dirty (TPM2State *s)
