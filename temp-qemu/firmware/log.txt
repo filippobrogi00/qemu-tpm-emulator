@@ -1,0 +1,680 @@
+python determined to be '/usr/bin/python3'
+python version: Python 3.12.3
+Sphinx not found/usable, disabling docs.
+The Meson build system
+Version: 1.5.0
+Source dir: /root/tpm_updated/group7-TPM/temp-qemu/qemu
+Build dir: /root/tpm_updated/group7-TPM/temp-qemu/qemu/build
+Build type: native build
+Project name: qemu
+Project version: 10.0.50
+C compiler for the host machine: cc -m64 (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0")
+C linker for the host machine: cc -m64 ld.bfd 2.42
+Host machine cpu family: x86_64
+Host machine cpu: x86_64
+Program scripts/symlink-install-tree.py found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/symlink-install-tree.py)
+Program sh found: YES (/usr/bin/sh)
+Program python3 found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3)
+Compiler for language rust skipped: feature rust disabled
+Program iasl found: NO
+Program bzip2 found: YES (/usr/bin/bzip2)
+Compiler for C supports link arguments -Wl,-z,relro: YES 
+Compiler for C supports link arguments -Wl,-z,now: YES 
+Checking if "-fzero-call-used-regs=used-gpr" compiles: YES 
+Compiler for C supports arguments -ftrivial-auto-var-init=zero: YES 
+Compiler for C supports arguments -fzero-call-used-regs=used-gpr: YES 
+Compiler for C supports arguments -Wempty-body: YES 
+Compiler for C supports arguments -Wendif-labels: YES 
+Compiler for C supports arguments -Wexpansion-to-defined: YES 
+Compiler for C supports arguments -Wformat-security: YES 
+Compiler for C supports arguments -Wformat-y2k: YES 
+Compiler for C supports arguments -Wignored-qualifiers: YES 
+Compiler for C supports arguments -Wimplicit-fallthrough=2: YES 
+Compiler for C supports arguments -Winit-self: YES 
+Compiler for C supports arguments -Wmissing-format-attribute: YES 
+Compiler for C supports arguments -Wmissing-prototypes: YES 
+Compiler for C supports arguments -Wnested-externs: YES 
+Compiler for C supports arguments -Wold-style-declaration: YES 
+Compiler for C supports arguments -Wold-style-definition: YES 
+Compiler for C supports arguments -Wredundant-decls: YES 
+Compiler for C supports arguments -Wshadow=local: YES 
+Compiler for C supports arguments -Wstrict-prototypes: YES 
+Compiler for C supports arguments -Wtype-limits: YES 
+Compiler for C supports arguments -Wundef: YES 
+Compiler for C supports arguments -Wvla: YES 
+Compiler for C supports arguments -Wwrite-strings: YES 
+Compiler for C supports arguments -Wno-gnu-variable-sized-type-not-at-end: NO 
+Compiler for C supports arguments -Wno-initializer-overrides: NO 
+Compiler for C supports arguments -Wno-missing-include-dirs: YES 
+Compiler for C supports arguments -Wno-psabi: YES 
+Compiler for C supports arguments -Wno-shift-negative-value: YES 
+Compiler for C supports arguments -Wno-string-plus-int: NO 
+Compiler for C supports arguments -Wno-tautological-type-limit-compare: NO 
+Compiler for C supports arguments -Wno-typedef-redefinition: NO 
+Program cgcc found: NO
+Library m found: YES
+Run-time dependency threads found: YES
+Library util found: YES
+Run-time dependency appleframeworks found: NO (tried framework)
+Found pkg-config: YES (/usr/bin/pkg-config) 1.8.1
+Run-time dependency xencontrol found: NO (tried pkgconfig)
+Library xenstore found: NO
+Library xenctrl found: NO
+Library xendevicemodel found: NO
+Library xenforeignmemory found: NO
+Library xengnttab found: NO
+Library xenevtchn found: NO
+Library xentoolcore found: NO
+Run-time dependency openssl found: YES 3.0.13
+Run-time dependency glib-2.0 found: YES 2.80.0
+Run-time dependency gmodule-no-export-2.0 found: YES 2.80.0
+Run-time dependency gio-2.0 found: YES 2.80.0
+Program gdbus-codegen found: YES (/usr/bin/gdbus-codegen)
+Run-time dependency gio-unix-2.0 found: YES 2.80.0
+Program scripts/xml-preprocess.py found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/xml-preprocess.py)
+Run-time dependency pixman-1 found: YES 0.42.2
+Run-time dependency zlib found: YES 1.3
+Has header "libaio.h" : NO 
+Run-time dependency liburing found: NO (tried pkgconfig)
+Run-time dependency libnfs found: NO (tried pkgconfig)
+Run-time dependency appleframeworks found: NO (tried framework)
+Run-time dependency appleframeworks found: NO (tried framework)
+Run-time dependency libseccomp found: NO (tried pkgconfig)
+Has header "cap-ng.h" : NO 
+Run-time dependency xkbcommon found: YES 1.6.0
+Run-time dependency slirp found: NO (tried pkgconfig)
+Has header "libvdeplug.h" : NO 
+Run-time dependency libpulse found: YES 16.1
+Run-time dependency alsa found: YES 1.2.11
+Run-time dependency jack found: NO (tried pkgconfig)
+Run-time dependency libpipewire-0.3 found: NO (tried pkgconfig)
+Run-time dependency sndio found: YES 1.9.0
+Run-time dependency spice-protocol found: NO (tried pkgconfig)
+Run-time dependency spice-server found: NO (tried pkgconfig)
+Library rt found: YES
+Run-time dependency libiscsi found: NO (tried pkgconfig)
+Run-time dependency libzstd found: YES 1.5.5
+Run-time dependency qpl found: NO (tried pkgconfig)
+Run-time dependency libwd found: NO (tried pkgconfig)
+Run-time dependency libwd_comp found: NO (tried pkgconfig)
+Run-time dependency qatzip found: NO (tried pkgconfig)
+Run-time dependency virglrenderer found: NO (tried pkgconfig)
+Run-time dependency rutabaga_gfx_ffi found: NO (tried pkgconfig)
+Run-time dependency blkio found: NO (tried pkgconfig)
+Run-time dependency libcurl found: NO (tried pkgconfig)
+Run-time dependency libudev found: YES 255
+Library mpathpersist found: NO
+Run-time dependency ncursesw found: NO (tried pkgconfig)
+Has header "curses.h" : NO 
+Message: Trying with /usr/include/ncursesw
+Has header "curses.h" : NO 
+Has header "brlapi.h" : NO 
+Run-time dependency sdl2 found: YES 2.30.0
+Run-time dependency sdl2_image found: YES 2.8.2
+Library rados found: NO
+Has header "rbd/librbd.h" : NO 
+Run-time dependency glusterfs-api found: NO (tried pkgconfig)
+Run-time dependency libssh found: NO (tried pkgconfig)
+Has header "bzlib.h" : NO 
+Has header "lzfse.h" : NO 
+Has header "sys/soundcard.h" : YES 
+Run-time dependency epoxy found: NO (tried pkgconfig)
+Has header "epoxy/egl.h" with dependency epoxy: NO 
+Did not find CMake 'cmake'
+Found CMake: NO
+Run-time dependency libcbor found: NO (tried pkgconfig and cmake)
+Run-time dependency gnutls found: NO (tried pkgconfig)
+Run-time dependency gnutls found: NO (tried pkgconfig)
+libgcrypt-config found: NO need ['>=1.8']
+Run-time dependency libgcrypt found: NO (tried pkgconfig and config-tool)
+Run-time dependency nettle found: NO (tried pkgconfig)
+Run-time dependency capstone found: NO (tried pkgconfig)
+Run-time dependency gmp found: NO (tried pkgconfig)
+Run-time dependency gtk+-3.0 found: NO (tried pkgconfig)
+Run-time dependency libpng found: YES 1.6.43
+Run-time dependency libjpeg found: YES 2.1.5
+Has header "sasl/sasl.h" : NO 
+Has header "security/pam_appl.h" : NO 
+Has header "snappy-c.h" : NO 
+Has header "lzo/lzo1x.h" : NO 
+Has header "numa.h" : NO 
+Library fdt found: YES
+Has header "rdma/rdma_cma.h" : NO 
+Library ibverbs found: NO
+Run-time dependency libcacard found: NO (tried pkgconfig)
+Run-time dependency u2f-emu found: NO (tried pkgconfig)
+Run-time dependency canokey-qemu found: NO (tried pkgconfig)
+Run-time dependency libusbredirparser-0.5 found: NO (tried pkgconfig)
+Run-time dependency libusb-1.0 found: NO (tried pkgconfig)
+Run-time dependency libpmem found: NO (tried pkgconfig)
+Run-time dependency libdaxctl found: NO (tried pkgconfig)
+Run-time dependency libkeyutils found: NO (tried pkgconfig)
+Checking for function "gettid" : YES 
+Run-time dependency libselinux found: YES 3.5
+Checking for function "malloc_trim" : YES 
+Header "sys/stat.h" has symbol "STATX_BASIC_STATS" : YES 
+Header "sys/stat.h" has symbol "STATX_MNT_ID" : YES 
+Run-time dependency fuse3 found: NO (tried pkgconfig)
+Run-time dependency libbpf found: NO (tried pkgconfig)
+Run-time dependency libdw found: NO (tried pkgconfig)
+Header "linux/fs.h" has symbol "FIFREEZE" : YES 
+Header "linux/fs.h" has symbol "FITRIM" : YES 
+Has header "sys/epoll.h" : YES 
+Has header "linux/magic.h" : YES 
+Has header "valgrind/valgrind.h" : NO 
+Has header "linux/btrfs.h" : YES 
+Has header "libdrm/drm.h" : YES 
+Has header "linux/openat2.h" : YES 
+Has header "pty.h" : YES 
+Has header "sys/disk.h" : NO 
+Has header "sys/ioccom.h" : NO 
+Has header "sys/kcov.h" : NO 
+Checking for function "close_range" : YES 
+Checking for function "accept4" : YES 
+Checking for function "clock_adjtime" : YES 
+Checking for function "dup3" : YES 
+Checking for function "fallocate" : YES 
+Checking for function "posix_fallocate" : YES 
+Checking for function "getcpu" : YES 
+Checking for function "sched_getcpu" : NO 
+Checking for function "posix_memalign" : YES 
+Checking for function "_aligned_malloc" : NO 
+Checking for function "valloc" : YES 
+Checking for function "memalign" : YES 
+Checking for function "ppoll" : YES 
+Checking for function "preadv" : YES 
+Checking for function "pthread_fchdir_np" : NO 
+Checking for function "sendfile" : YES 
+Checking for function "setns" : YES 
+Checking for function "unshare" : YES 
+Checking for function "syncfs" : YES 
+Checking for function "sync_file_range" : YES 
+Checking for function "timerfd_create" : YES 
+Checking for function "getloadavg" : YES 
+Checking for function "copy_file_range" : YES 
+Checking for function "getifaddrs" : YES 
+Checking for function "openpty" with dependency -lutil: YES 
+Checking for function "strchrnul" : YES 
+Checking for function "system" : YES 
+Header "sys/inotify.h" has symbol "inotify_init" : YES 
+Header "sys/inotify.h" has symbol "inotify_init1" : YES 
+Header "linux/blkzoned.h" has symbol "BLKOPENZONE" : YES 
+Header "sys/epoll.h" has symbol "epoll_create1" : YES 
+Header "linux/falloc.h" has symbol "FALLOC_FL_PUNCH_HOLE" : YES 
+Header "linux/falloc.h" has symbol "FALLOC_FL_KEEP_SIZE" : YES 
+Header "linux/falloc.h" has symbol "FALLOC_FL_ZERO_RANGE" : YES 
+Has header "linux/fiemap.h" : YES 
+Header "linux/fs.h" has symbol "FS_IOC_FIEMAP" : YES 
+Checking for function "getrandom" : YES 
+Header "sys/random.h" has symbol "GRND_NONBLOCK" : YES 
+Header "sys/prctl.h" has symbol "PR_SET_TIMERSLACK" : YES 
+Header "linux/rtnetlink.h" has symbol "IFLA_PROTO_DOWN" : YES 
+Header "sys/sysmacros.h" has symbol "makedev" : YES 
+Header "getopt.h" has symbol "optreset" : NO 
+Header "netinet/in.h" has symbol "IPPROTO_MPTCP" : YES 
+Checking whether type "struct sigevent" has member "sigev_notify_thread_id" : NO 
+Checking whether type "struct stat" has member "st_atim" : YES 
+Checking whether type "struct blk_zone" has member "capacity" : YES 
+Checking for type "struct iovec" : YES 
+Checking for type "struct utmpx" : YES 
+Checking for type "struct mmsghdr" : YES 
+Header "asm/hwprobe.h" has symbol "RISCV_HWPROBE_EXT_ZBA" : NO 
+Header "linux/vm_sockets.h" has symbol "AF_VSOCK" : YES 
+Checking for size of "void *" : 8 
+Program scripts/minikconf.py found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/minikconf.py)
+Configuring arm-softmmu-config-target.h using configuration
+Configuring arm-softmmu-config-devices.mak with command
+Reading depfile: /root/tpm_updated/group7-TPM/temp-qemu/qemu/build/meson-private/arm-softmmu-config-devices.mak.d
+Configuring arm-softmmu-config-devices.h using configuration
+Program scripts/make-config-poison.sh found: YES (/bin/sh /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/make-config-poison.sh)
+
+Executing subproject libvhost-user 
+
+libvhost-user| Project name: libvhost-user
+libvhost-user| Project version: undefined
+libvhost-user| C compiler for the host machine: cc -m64 (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0")
+libvhost-user| C linker for the host machine: cc -m64 ld.bfd 2.42
+libvhost-user| Compiler for C supports arguments -Wsign-compare: YES
+libvhost-user| Compiler for C supports arguments -Wdeclaration-after-statement: YES
+libvhost-user| Compiler for C supports arguments -Wstrict-aliasing: YES
+libvhost-user| Dependency threads found: YES unknown (cached)
+libvhost-user| Dependency glib-2.0 found: YES 2.80.0 (overridden)
+libvhost-user| Build targets in project: 4
+libvhost-user| Subproject libvhost-user finished.
+
+
+Executing subproject libvduse 
+
+libvduse| Project name: libvduse
+libvduse| Project version: undefined
+libvduse| C compiler for the host machine: cc -m64 (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0")
+libvduse| C linker for the host machine: cc -m64 ld.bfd 2.42
+libvduse| Compiler for C supports arguments -Wsign-compare: YES (cached)
+libvduse| Compiler for C supports arguments -Wdeclaration-after-statement: YES (cached)
+libvduse| Compiler for C supports arguments -Wstrict-aliasing: YES (cached)
+libvduse| Build targets in project: 5
+libvduse| Subproject libvduse finished.
+
+Configuring config-host.h using configuration
+Program scripts/hxtool found: YES (/bin/sh /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/hxtool)
+Program scripts/shaderinclude.py found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/shaderinclude.py)
+Program scripts/qapi-gen.py found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/qapi-gen.py)
+Program scripts/qemu-version.sh found: YES (/bin/sh /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/qemu-version.sh)
+
+Executing subproject keycodemapdb 
+
+keycodemapdb| Project name: keycodemapdb
+keycodemapdb| Project version: undefined
+keycodemapdb| Program tools/keymap-gen found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/subprojects/keycodemapdb/tools/keymap-gen)
+keycodemapdb| Build targets in project: 278
+keycodemapdb| Subproject keycodemapdb finished.
+
+Program scripts/decodetree.py found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/decodetree.py)
+Program ../scripts/modules/module_block.py found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/block/../scripts/modules/module_block.py)
+Program ../scripts/block-coroutine-wrapper.py found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/block/../scripts/block-coroutine-wrapper.py)
+Configuring qemu-plugin.symbols with command
+Program scripts/modinfo-collect.py found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/modinfo-collect.py)
+Program scripts/modinfo-generate.py found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/modinfo-generate.py)
+Program nm found: YES
+Program scripts/undefsym.py found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/undefsym.py)
+Program scripts/feature_to_c.py found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/feature_to_c.py)
+Program scripts/rust/rust_root_crate.sh found: YES (/bin/sh /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/rust/rust_root_crate.sh)
+Program dtc found: NO
+Configuring 50-edk2-i386-secure.json using configuration
+Configuring 50-edk2-x86_64-secure.json using configuration
+Configuring 60-edk2-aarch64.json using configuration
+Configuring 60-edk2-arm.json using configuration
+Configuring 60-edk2-i386.json using configuration
+Configuring 60-edk2-x86_64.json using configuration
+Configuring 60-edk2-loongarch64.json using configuration
+Configuring 60-edk2-riscv64.json using configuration
+Program /root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/sphinx-build skipped: feature docs disabled
+Program bash found: YES 5.2.21 5.2.21 (/usr/bin/bash)
+Program /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/decodetree.py found: YES (/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/decodetree.py)
+
+Executing subproject berkeley-softfloat-3 
+
+berkeley-softfloat-3| Project name: berkeley-softfloat-3
+berkeley-softfloat-3| Project version: undefined
+berkeley-softfloat-3| C compiler for the host machine: cc -m64 (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0")
+berkeley-softfloat-3| C linker for the host machine: cc -m64 ld.bfd 2.42
+berkeley-softfloat-3| Configuring platform.h using configuration
+berkeley-softfloat-3| Build targets in project: 441
+berkeley-softfloat-3| Subproject berkeley-softfloat-3 finished.
+
+
+Executing subproject berkeley-testfloat-3 
+
+berkeley-testfloat-3| Project name: berkeley-testfloat-3
+berkeley-testfloat-3| Project version: undefined
+berkeley-testfloat-3| C compiler for the host machine: cc -m64 (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0")
+berkeley-testfloat-3| C linker for the host machine: cc -m64 ld.bfd 2.42
+berkeley-testfloat-3| Configuring platform.h using configuration
+berkeley-testfloat-3| Compiler for C supports arguments -Wno-ignored-pragmas: NO
+berkeley-testfloat-3| Build targets in project: 443
+berkeley-testfloat-3| Subproject berkeley-testfloat-3 finished.
+
+Program diff found: YES (/usr/bin/diff)
+Program dbus-daemon found: YES (/usr/bin/dbus-daemon)
+Run-time dependency gvnc-1.0 found: NO (tried pkgconfig)
+Run-time dependency sysprof-capture-4 found: NO (tried pkgconfig)
+Run-time dependency glib-2.0 found: YES 2.80.0
+Program initrd-stress.sh found: YES (/bin/sh /root/tpm_updated/group7-TPM/temp-qemu/qemu/tests/migration-stress/initrd-stress.sh)
+Build targets in project: 626
+
+qemu 10.0.50
+
+  Build environment
+    Build directory                 : /root/tpm_updated/group7-TPM/temp-qemu/qemu/build
+    Source path                     : /root/tpm_updated/group7-TPM/temp-qemu/qemu
+    Download dependencies           : YES
+
+  Directories
+    Build directory                 : /root/tpm_updated/group7-TPM/temp-qemu/qemu/build
+    Source path                     : /root/tpm_updated/group7-TPM/temp-qemu/qemu
+    Download dependencies           : YES
+    Install prefix                  : /usr/local
+    BIOS directory                  : share/qemu
+    firmware path                   : share/qemu-firmware
+    binary directory                : /usr/local/bin
+    library directory               : /usr/local/lib/x86_64-linux-gnu
+    module directory                : lib/x86_64-linux-gnu/qemu
+    libexec directory               : /usr/local/libexec
+    include directory               : /usr/local/include
+    config directory                : /usr/local/etc
+    local state directory           : /var/local
+    Manual directory                : /usr/local/share/man
+    Doc directory                   : /usr/local/share/doc
+
+  Host binaries
+    python                          : /root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 (version: 3.12)
+    sphinx-build                    : NO
+    gdb                             : /usr/bin/gdb-multiarch
+    iasl                            : NO
+    genisoimage                     : 
+
+  Configurable features
+    Documentation                   : NO
+    system-mode emulation           : YES
+    user-mode emulation             : NO
+    block layer                     : YES
+    Install blobs                   : YES
+    module support                  : NO
+    fuzzing support                 : NO
+    Audio drivers                   : pa sndio oss
+    Trace backends                  : log
+    D-Bus display                   : YES
+    QOM debugging                   : YES
+    Relocatable install             : YES
+    vhost-kernel support            : YES
+    vhost-net support               : YES
+    vhost-user support              : YES
+    vhost-user-crypto support       : YES
+    vhost-user-blk server support   : YES
+    vhost-vdpa support              : YES
+    build guest agent               : YES
+
+  Compilation
+    host CPU                        : x86_64
+    host endianness                 : little
+    C compiler                      : cc -m64
+    Host C compiler                 : cc -m64
+    C++ compiler                    : NO
+    Objective-C compiler            : NO
+    Rust support                    : NO
+    CFLAGS                          : -g -O2
+    QEMU_CFLAGS                     : -mcx16 -msse2 -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-strict-aliasing -fno-common -fwrapv -ftrivial-auto-var-init=zero -fzero-call-used-regs=used-gpr -fstack-protector-strong
+    QEMU_LDFLAGS                    : -fstack-protector-strong -Wl,-z,relro -Wl,-z,now
+    link-time optimization (LTO)    : NO
+    PIE                             : YES
+    static build                    : NO
+    malloc trim support             : YES
+    membarrier                      : NO
+    debug graph lock                : NO
+    debug stack usage               : NO
+    mutex debugging                 : NO
+    memory allocator                : system
+    avx2 optimization               : YES
+    avx512bw optimization           : YES
+    gcov                            : NO
+    thread sanitizer                : NO
+    CFI support                     : NO
+    strip binaries                  : NO
+    sparse                          : NO
+    mingw32 support                 : NO
+
+  Targets and accelerators
+    KVM support                     : NO
+    HVF support                     : NO
+    WHPX support                    : NO
+    NVMM support                    : NO
+    Xen support                     : NO
+    Xen emulation                   : NO
+    TCG support                     : YES
+    TCG backend                     : native (x86_64)
+    TCG plugins                     : YES
+    TCG debug enabled               : NO
+    target list                     : arm-softmmu
+    default devices                 : YES
+    out of process emulation        : YES
+    vfio-user server                : NO
+
+  Block layer support
+    coroutine backend               : ucontext
+    coroutine pool                  : YES
+    Block whitelist (rw)            : 
+    Block whitelist (ro)            : 
+    Use block whitelist in tools    : NO
+    VirtFS (9P) support             : YES
+    replication support             : YES
+    bochs support                   : YES
+    cloop support                   : YES
+    dmg support                     : YES
+    qcow v1 support                 : YES
+    vdi support                     : YES
+    vhdx support                    : YES
+    vmdk support                    : YES
+    vpc support                     : YES
+    vvfat support                   : YES
+    qed support                     : YES
+    parallels support               : YES
+    FUSE exports                    : NO
+    VDUSE block exports             : YES
+
+  Crypto
+    TLS priority                    : NORMAL
+    GNUTLS support                  : NO
+    libgcrypt                       : NO
+    nettle                          : NO
+    SM4 ALG support                 : NO
+    SM3 ALG support                 : NO
+    AF_ALG support                  : NO
+    rng-none                        : NO
+    Linux keyring                   : YES
+    Linux keyutils                  : NO
+
+  User interface
+    SDL support                     : YES 2.30.0
+    SDL image support               : YES 2.8.2
+    GTK support                     : NO
+    pixman                          : YES 0.42.2
+    VTE support                     : NO
+    PNG support                     : YES 1.6.43
+    VNC support                     : YES
+    VNC SASL support                : NO
+    VNC JPEG support                : YES 2.1.5
+    spice protocol support          : NO
+    curses support                  : NO
+    brlapi support                  : NO
+
+  Graphics backends
+    VirGL support                   : NO
+    Rutabaga support                : NO
+
+  Audio backends
+    OSS support                     : YES
+    sndio support                   : YES 1.9.0
+    ALSA support                    : YES 1.2.11
+    PulseAudio support              : YES 16.1
+    PipeWire support                : NO
+    JACK support                    : NO
+
+  Network backends
+    AF_XDP support                  : NO
+    slirp support                   : NO
+    vde support                     : NO
+    netmap support                  : NO
+    l2tpv3 support                  : YES
+
+  Dependencies
+Cleaning... 0 files.
+    libtasn1                        : NO
+    PAM                             : NO
+    iconv support                   : YES
+    blkio support                   : NO
+    curl support                    : NO
+    Multipath support               : NO
+    Linux AIO support               : NO
+    Linux io_uring support          : NO
+    ATTR/XATTR support              : YES
+    RDMA support                    : NO
+    fdt support                     : YES
+    libcap-ng support               : NO
+    bpf support                     : NO
+    rbd support                     : NO
+    smartcard support               : NO
+    U2F support                     : NO
+    libusb                          : NO
+    usb net redir                   : NO
+    OpenGL support (epoxy)          : NO
+    GBM                             : NO
+    libiscsi support                : NO
+    libnfs support                  : NO
+    seccomp support                 : NO
+    GlusterFS support               : NO
+    hv-balloon support              : YES
+    TPM support                     : YES
+    libssh support                  : NO
+    lzo support                     : NO
+    snappy support                  : NO
+    bzip2 support                   : NO
+    lzfse support                   : NO
+    zstd support                    : YES 1.5.5
+    Query Processing Library support: NO
+    UADK Library support            : NO
+    qatzip support                  : NO
+    NUMA host support               : NO
+    capstone                        : NO
+    libpmem support                 : NO
+    libdaxctl support               : NO
+    libcbor support                 : NO
+    libudev                         : YES 255
+    FUSE lseek                      : NO
+    selinux                         : YES 3.5
+    libdw                           : NO
+
+  Subprojects
+    berkeley-softfloat-3            : YES
+    berkeley-testfloat-3            : YES
+    keycodemapdb                    : YES
+    libvduse                        : YES
+    libvhost-user                   : YES
+
+  User defined options
+    Native files                    : config-meson.cross
+    docs                            : disabled
+    plugins                         : true
+
+Found ninja-1.11.1 at /usr/bin/ninja
+Running postconf script '/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/symlink-install-tree.py'
+ninja: no work to do.
+/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/meson introspect --targets --tests --benchmarks | /root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 -B scripts/mtest2make.py > Makefile.mtest
+[1/56] Generating qemu-version.h with a custom command (wrapped by meson to capture output)
+[2/44] Generating block.syms with a custom command (wrapped by meson to capture output)
+[3/40] Generating qemu.syms with a custom command (wrapped by meson to capture output)
+[4/40] Compiling C object libcommon.a.p/hw_tpm_tpm_nv.c.o
+In file included from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/qemu/osdep.h:161,
+                 from ../hw/tpm/tpm_nv.c:7:
+/root/tpm_updated/group7-TPM/temp-qemu/qemu/include/glib-compat.h:22: warning: "GLIB_VERSION_MIN_REQUIRED" redefined
+   22 | #define GLIB_VERSION_MIN_REQUIRED GLIB_VERSION_2_66
+      | 
+In file included from /usr/include/glib-2.0/glib/gtypes.h:36,
+                 from /usr/include/glib-2.0/glib/galloca.h:34,
+                 from /usr/include/glib-2.0/glib.h:32,
+                 from ../hw/tpm/tpm_nv.c:5:
+/usr/include/glib-2.0/glib/gversionmacros.h:456: note: this is the location of the previous definition
+  456 | #define GLIB_VERSION_MIN_REQUIRED (GLIB_VERSION_CUR_STABLE)
+      | 
+/root/tpm_updated/group7-TPM/temp-qemu/qemu/include/glib-compat.h:27: warning: "GLIB_VERSION_MAX_ALLOWED" redefined
+   27 | #define GLIB_VERSION_MAX_ALLOWED GLIB_VERSION_2_66
+      | 
+/usr/include/glib-2.0/glib/gversionmacros.h:485: note: this is the location of the previous definition
+  485 | #define GLIB_VERSION_MAX_ALLOWED (GLIB_VERSION_CUR_STABLE)
+      | 
+In file included from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_nv_entry.h:9,
+                 from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_device.h:7,
+                 from ../hw/tpm/tpm_nv.c:10:
+../hw/tpm/tpm_nv.c: In function ‘nv_entry_alloc’:
+/root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_nv.h:10:37: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘size_t’ {aka ‘long unsigned int’} [-Wformat=]
+   10 | #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ##__VA_ARGS__)
+      |                                     ^~~~~~
+../hw/tpm/tpm_nv.c:70:9: note: in expansion of macro ‘TPM2_LOG’
+   70 |         TPM2_LOG("nv_entry_alloc: NV bank full (need=%u bytes)\n", need);
+      |         ^~~~~~~~
+/root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_nv.h:10:37: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 5 has type ‘size_t’ {aka ‘long unsigned int’} [-Wformat=]
+   10 | #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ##__VA_ARGS__)
+      |                                     ^~~~~~
+../hw/tpm/tpm_nv.c:98:5: note: in expansion of macro ‘TPM2_LOG’
+   98 |     TPM2_LOG("nv_entry_alloc: index=0x%08X offset=%zu size=%u\n",
+      |     ^~~~~~~~
+../hw/tpm/tpm_nv.c: In function ‘tpm2_nv_define_space’:
+../hw/tpm/tpm_nv.c:169:5: warning: "/*" within comment [-Wcomment]
+  169 |     /* 2) Validate data size */
+      |      
+../hw/tpm/tpm_nv.c: In function ‘nv_write_crypt_to_bank’:
+../hw/tpm/tpm_nv.c:359:9: warning: implicit declaration of function ‘RAND_bytes’ [-Wimplicit-function-declaration]
+  359 |     if (RAND_bytes(e->iv_ptr, 16) != 1) {
+      |         ^~~~~~~~~~
+../hw/tpm/tpm_nv.c:359:9: warning: nested extern declaration of ‘RAND_bytes’ [-Wnested-externs]
+../hw/tpm/tpm_nv.c:366:18: warning: implicit declaration of function ‘TPM2_AES_CFB_Crypt’ [-Wimplicit-function-declaration]
+  366 |     int outlen = TPM2_AES_CFB_Crypt(s->primary_sensitive.sensitiveArea.sensitive.ecc.buffer,s->primary_sensitive.sensitiveArea.sensitive.ecc.size,
+      |                  ^~~~~~~~~~~~~~~~~~
+../hw/tpm/tpm_nv.c:366:18: warning: nested extern declaration of ‘TPM2_AES_CFB_Crypt’ [-Wnested-externs]
+[5/40] Compiling C object libcommon.a.p/hw_tpm_tpm_crypto.c.o
+../hw/tpm/tpm_crypto.c: In function ‘TPM2_KDFa’:
+../hw/tpm/tpm_crypto.c:79:7: warning: ‘HMAC_CTX_new’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+   79 |       HMAC_CTX *hmac = HMAC_CTX_new ();
+      |       ^~~~~~~~
+In file included from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_crypto.h:8,
+                 from ../hw/tpm/tpm_crypto.c:1:
+/usr/include/openssl/hmac.h:33:33: note: declared here
+   33 | OSSL_DEPRECATEDIN_3_0 HMAC_CTX *HMAC_CTX_new(void);
+      |                                 ^~~~~~~~~~~~
+../hw/tpm/tpm_crypto.c:84:7: warning: ‘HMAC_Init_ex’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+   84 |       if (!HMAC_Init_ex (hmac, hmacKey, (int)hmacKeyLen, hash, NULL))
+      |       ^~
+/usr/include/openssl/hmac.h:43:27: note: declared here
+   43 | OSSL_DEPRECATEDIN_3_0 int HMAC_Init_ex(HMAC_CTX *ctx, const void *key, int len,
+      |                           ^~~~~~~~~~~~
+../hw/tpm/tpm_crypto.c:86:11: warning: ‘HMAC_CTX_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+   86 |           HMAC_CTX_free (hmac);
+      |           ^~~~~~~~~~~~~
+/usr/include/openssl/hmac.h:35:28: note: declared here
+   35 | OSSL_DEPRECATEDIN_3_0 void HMAC_CTX_free(HMAC_CTX *ctx);
+      |                            ^~~~~~~~~~~~~
+../hw/tpm/tpm_crypto.c:97:7: warning: ‘HMAC_Update’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+   97 |       HMAC_Update (hmac, ctr_be, 4);
+      |       ^~~~~~~~~~~
+/usr/include/openssl/hmac.h:45:27: note: declared here
+   45 | OSSL_DEPRECATEDIN_3_0 int HMAC_Update(HMAC_CTX *ctx, const unsigned char *data,
+      |                           ^~~~~~~~~~~
+../hw/tpm/tpm_crypto.c:102:11: warning: ‘HMAC_Update’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  102 |           HMAC_Update (hmac, (const uint8_t *)label, strlen (label));
+      |           ^~~~~~~~~~~
+/usr/include/openssl/hmac.h:45:27: note: declared here
+   45 | OSSL_DEPRECATEDIN_3_0 int HMAC_Update(HMAC_CTX *ctx, const unsigned char *data,
+      |                           ^~~~~~~~~~~
+../hw/tpm/tpm_crypto.c:107:7: warning: ‘HMAC_Update’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  107 |       HMAC_Update (hmac, &zero, 1);
+      |       ^~~~~~~~~~~
+/usr/include/openssl/hmac.h:45:27: note: declared here
+   45 | OSSL_DEPRECATEDIN_3_0 int HMAC_Update(HMAC_CTX *ctx, const unsigned char *data,
+      |                           ^~~~~~~~~~~
+../hw/tpm/tpm_crypto.c:115:7: warning: ‘HMAC_Update’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  115 |       HMAC_Update (hmac, bits_be, 4);
+      |       ^~~~~~~~~~~
+/usr/include/openssl/hmac.h:45:27: note: declared here
+   45 | OSSL_DEPRECATEDIN_3_0 int HMAC_Update(HMAC_CTX *ctx, const unsigned char *data,
+      |                           ^~~~~~~~~~~
+../hw/tpm/tpm_crypto.c:119:7: warning: ‘HMAC_Final’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  119 |       HMAC_Final (hmac, hmacBuf, &hmacLen);
+      |       ^~~~~~~~~~
+/usr/include/openssl/hmac.h:47:27: note: declared here
+   47 | OSSL_DEPRECATEDIN_3_0 int HMAC_Final(HMAC_CTX *ctx, unsigned char *md,
+      |                           ^~~~~~~~~~
+../hw/tpm/tpm_crypto.c:120:7: warning: ‘HMAC_CTX_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+  120 |       HMAC_CTX_free (hmac);
+      |       ^~~~~~~~~~~~~
+/usr/include/openssl/hmac.h:35:28: note: declared here
+   35 | OSSL_DEPRECATEDIN_3_0 void HMAC_CTX_free(HMAC_CTX *ctx);
+      |                            ^~~~~~~~~~~~~
+../hw/tpm/tpm_crypto.c:71:16: warning: unused variable ‘hashLen’ [-Wunused-variable]
+   71 |   uint32_t     hashLen         = (uint32_t)EVP_MD_size (hash);
+      |                ^~~~~~~
+../hw/tpm/tpm_crypto.c: In function ‘tpm2_CreatePrimary’:
+../hw/tpm/tpm_crypto.c:364:5: warning: the address of ‘priv’ will always evaluate as ‘true’ [-Waddress]
+  364 | if (!priv) {
+      |     ^
+[6/40] Compiling C object libqemu-arm-softmmu.a.p/hw_arm_nxps32k3x8evb_mcu.c.o
+../hw/arm/nxps32k3x8evb_mcu.c: In function ‘nxps32k3x8evb_mcu_realize’:
+../hw/arm/nxps32k3x8evb_mcu.c:150:5: warning: "/*" within comment [-Wcomment]
+  150 |     /*Modified: 17/10/2025
+      |      
+../hw/arm/nxps32k3x8evb_mcu.c:163:5: warning: "/*" within comment [-Wcomment]
+  163 |     /*
+      |      
+[7/40] Linking target qemu-system-arm
+[8/40] Generating tests/include/QAPI test (include) with a custom command
+arm-none-eabi-ld -T linker.ld startup.o main.o uart.o -o main.elf
+../qemu/build/qemu-system-arm -M nxps32k3x8evb -nographic -kernel main.elf
+[TPM2_NV_DefineSpace] tag=0x8001 size=12 rc=0x0

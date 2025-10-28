@@ -2,18 +2,22 @@
 #include "hw/sysbus.h"
 #include "migration/vmstate.h"
 #include "qemu/log.h"
+#include "qapi/error.h"
 #include "qemu/module.h"
 #include "tpm/tpm2_device.h"
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
+#include "tpm/tpm2_nv.h"
+#include "tpm/tpm2_structures.h"
+#include "tpm/tpm2_handles.h"
+#include "tpm/tpm2_crypto.h"
 
 #include "tpm/command_chain/cc_header.h"
 #include "tpm/command_chain/cc_unmarshal.h"
 #include "tpm/command_chain/cc_marshal.h"
 #include "tpm/tpm2_rc.h"
 #include "tpm/tpm2_cc.h"
-#include "tpm/tpm2_nv.h"
 
 #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ## __VA_ARGS__)
 
@@ -24,6 +28,215 @@ static void build_error_response(TPM2State *s, TPM_RC rc);
 static void tpm2_generate_random(TPM2State *s) {
     RAND_bytes(s->random_data, sizeof(s->random_data));
 }
+
+
+static inline TPMI_RH_PROVISION tpm2_provision_owner(void) {
+    return (TPMI_RH_PROVISION){TPM_RH_OWNER, TPM_RH_OWNER, TPM_RH_PLATFORM};
+}
+
+static void tpm2_test_definespace(TPM2State *s)
+{
+    TPM2B_AUTH auth = { .size = 4, .buffer = {'1','2','3','4'} };
+
+    TPMS_NV_PUBLIC pub = {
+        .nvIndex   = 0x1500016,
+        .nameAlg   = 0x000B, /* TPM_ALG_SHA256 */
+        .attributes = {
+            .ownerRead   = 1,
+            .ownerWrite  = 1,
+            .authRead    = 1,
+            .authWrite   = 1,
+            .noDA        = 1,
+            .nvType      = TPM_NT_ORDINARY
+        },
+        .dataSize   = 32
+    };
+
+    memset(pub.authPolicy, 0, sizeof(pub.authPolicy));
+
+    TPM2B_NV_PUBLIC publicInfo = {
+        .size = sizeof(pub),
+        .nvPublic = pub
+    };
+
+    TPMI_RH_PROVISION authHandle = tpm2_provision_owner();
+
+    TPM2_LOG("[INIT] Testing NV DefineSpace...\n");
+
+    TPM_RC rc = tpm2_nv_define_space(
+        s,
+        authHandle,
+        &auth,
+        &publicInfo
+    );
+
+    if (rc == TPM_RC_SUCCESS) {
+        TPM2_LOG("[INIT] NV DefineSpace success (count=%u)\n", s->nv_count);
+    } else {
+        TPM2_LOG("[INIT] NV DefineSpace failed! RC=0x%X\n", rc);
+    }
+
+    /* Optional: print existing NV entries */
+    if (s->nv_map && s->nv_count > 0) {
+        GHashTableIter it;
+        gpointer k, v;
+        g_hash_table_iter_init(&it, s->nv_map);
+        while (g_hash_table_iter_next(&it, &k, &v)) {
+            NVEntry *e = v;
+            TPM2_LOG("[INIT] NV Index=0x%X DataSize=%u NameAlg=0x%X\n",
+                     (uint32_t)GPOINTER_TO_UINT(k),
+                     e->pub.dataSize,
+                     e->pub.nameAlg);
+        }
+    }
+}
+
+
+
+
+
+
+
+TPM_RC tpm2_test_CreatePrimary(TPM2State *s)
+{
+
+
+    /* 1. Initialize seeds and proofs */
+    for (int i = 0; i < 32; i++) {
+        s->sps[i]     = 0x10 + i;
+        s->shProof[i] = 0x20 + i;
+        s->pps[i]     = 0x30 + i;
+        s->phProof[i] = 0x40 + i;
+        s->eps[i]     = 0x50 + i;
+        s->ehProof[i] = 0x60 + i;
+    }
+    s->next_transient_handle = 1;
+    s->initialized = true;
+
+    /* 2. Prepare inSensitive */
+    TPM2B_SENSITIVE_CREATE inSensitive;
+    memset(&inSensitive, 0, sizeof(inSensitive));
+    inSensitive.size = sizeof(inSensitive.sensitive);
+    inSensitive.sensitive.userAuth.size = 6;
+    memcpy(inSensitive.sensitive.userAuth.buffer, "passwd", 6);
+
+    /* 3. Prepare inPublic (ECC P-256) */
+    TPM2B_PUBLIC inPublic;
+    memset(&inPublic, 0, sizeof(inPublic));
+    inPublic.size = sizeof(inPublic.publicArea);
+    inPublic.publicArea.type     = TPM_ALG_ECC;
+    inPublic.publicArea.nameAlg  = TPM_ALG_SHA256;
+    inPublic.publicArea.objectAttributes =
+        0x00030072; // userWithAuth | sign | fixedTPM | fixedParent
+    inPublic.publicArea.parameters.eccDetail.curveID = TPM_ECC_NIST_P256;
+
+    /* 4. Output placeholders */
+    TPM2B_PUBLIC outPublic;
+    TPM2B_NAME name;
+    memset(&outPublic, 0, sizeof(outPublic));
+    memset(&name, 0, sizeof(name));
+    /* 5. Invoke CreatePrimary (objectHandle = NULL) */
+    TPM_RC rc = tpm2_CreatePrimary(s,
+                                   TPM_RH_OWNER,
+                                   &inSensitive,
+                                   &inPublic,
+                                   NULL,   /* outsideInfo */
+                                   NULL,   /* creationPCR */
+                                   NULL,   /* objectHandle unused */
+                                   &outPublic,
+                                   &name);
+
+    /* 6. Evaluate result */
+    TPM2_LOG("tpm2_CreatePrimary() returned 0x%X\n", rc);
+    if (rc != TPM_RC_SUCCESS) {
+        TPM2_LOG("FAILED: rc=0x%X\n", rc);
+        return rc;
+    }
+
+    TPM2_LOG("Primary key created successfully.\n");
+
+    /* 7. Log key details */
+    TPM2_LOG("Private key (d): ");
+    for (int i = 0; i < s->primary_sensitive.sensitiveArea.sensitive.ecc.size; i++)
+        qemu_log("%02X", s->primary_sensitive.sensitiveArea.sensitive.ecc.buffer[i]);
+    qemu_log("\n");
+
+    TPM2_LOG("Public X: ");
+    for (int i = 0; i < outPublic.publicArea.unique.ecc.x.size; i++)
+        qemu_log("%02X", outPublic.publicArea.unique.ecc.x.buffer[i]);
+    qemu_log("\n");
+
+    TPM2_LOG("Public Y: ");
+    for (int i = 0; i < outPublic.publicArea.unique.ecc.y.size; i++)
+        qemu_log("%02X", outPublic.publicArea.unique.ecc.y.buffer[i]);
+    qemu_log("\n");
+
+    TPM2_LOG("Name: ");
+    for (int i = 0; i < name.size; i++)
+        qemu_log("%02X", name.name[i]);
+    qemu_log("\n");
+
+    return TPM_RC_SUCCESS;
+}
+
+
+
+static void tpm2_test_nv_encrypt_decrypt(TPM2State *s)
+{
+    TPM2_LOG("---- [TPM TEST] NV Encrypt/Decrypt start ----\n");
+
+    /* 1. Ensure NV entry exists (use one created by DefineSpace) */
+    uint32_t index = 0x1500016;
+    NVEntry *e = g_hash_table_lookup(s->nv_map, GUINT_TO_POINTER(index));
+    if (!e) {
+        TPM2_LOG("[TEST] NV index 0x%08X not found\n", index);
+        return;
+    }
+
+    const char *msg = "TPM NV TEST DATA";
+    uint8_t ciphertext[64] = {0};
+    uint8_t decrypted[64]  = {0};
+
+    TPM2_LOG("[TEST] Plaintext: %s\n", msg);
+
+    /* 2. Encrypt plaintext into NV bank */
+    TPM_RC rc = nv_write_crypt_to_bank(s, e, (const uint8_t *)msg, strlen(msg), 0);
+    TPM2_LOG("[TEST] nv_write_crypt_to_bank rc=0x%X\n", rc);
+
+    /* 3. Dump encrypted bytes */
+    TPM2_LOG("[TEST] Ciphertext (in NV bank): ");
+    for (int i = 0; i < strlen(msg); i++)
+        qemu_log("%02X ", e->data[i]);
+    qemu_log("\n");
+
+    /* 4. Read and decrypt back */
+    rc = nv_read_decrypt_from_bank(s, e, decrypted, strlen(msg), 0);
+    TPM2_LOG("[TEST] nv_read_decrypt_from_bank rc=0x%X\n", rc);
+
+    decrypted[strlen(msg)] = '\0';
+    TPM2_LOG("[TEST] Decrypted: %s\n", decrypted);
+
+    /* 5. Compare */
+    if (memcmp(msg, decrypted, strlen(msg)) == 0)
+        TPM2_LOG("[TEST] ✅ Encryption/Decryption OK\n");
+    else
+        TPM2_LOG("[TEST] ❌ Mismatch!\n");
+
+    TPM2_LOG("---- [TPM TEST] NV Encrypt/Decrypt end ----\n");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 static void tpm2_generate_rsa_key(TPM2State *s) {
     if (s->rsa_key) {
@@ -422,6 +635,53 @@ static const MemoryRegionOps tpm2_mmio_ops = {
     .impl.max_access_size = 4,
 };
 
+
+static void tpm2_realize(DeviceState *dev, Error **errp)
+{
+    TPM2State *s = TPM2(dev);
+    Error *err = NULL;
+
+
+
+    //Here it returns error: Cannot get MMIO region.
+    
+    /* IRQ + MMIO window (guest-visible) */
+    sysbus_init_irq(SYS_BUS_DEVICE(dev), &s->irq);
+    memory_region_init_io(&s->mmio, OBJECT(dev), &tpm2_mmio_ops, s, TYPE_TPM2, 0x20);
+    sysbus_init_mmio(SYS_BUS_DEVICE(dev), &s->mmio);
+
+    /* --- NV bank: private RAM (internal, not mapped to system bus) --- */
+    memory_region_init_ram(&s->nv_bank_mem, OBJECT(dev), "tpm2.nvbank",
+                           TPM2_NVSTORAGE_SIZE, &err);
+    if (err) { error_propagate(errp, err); return; }
+
+    s->nv_bank_ptr  = memory_region_get_ram_ptr(&s->nv_bank_mem);
+    s->nv_bank_size = TPM2_NVSTORAGE_SIZE;
+
+    /* Zeroing a fresh buffer is fine with memset (secure wipe is a different topic) */
+    memset(s->nv_bank_ptr, 0, s->nv_bank_size);
+    TPM2_LOG("[DEBUG]NV bank initialized: %u bytes at %p\n", s->nv_bank_size, s->nv_bank_ptr);
+
+    tpm2_nv_init(s);
+    s->nv_alloc_offset = 0;
+
+
+    TPM2_LOG("[DEBUG]NV map initialized, running definespace_test\n");
+    tpm2_test_definespace(s);
+    TPM2_LOG("[DEBUG]Running CreatePrimary\n");
+    tpm2_test_CreatePrimary(s);
+    TPM2_LOG("[DEBUG]Running nv_encrypt_decrypt_test\n");
+    tpm2_test_nv_encrypt_decrypt(s);
+
+
+}
+
+
+
+
+
+
+
 static void tpm2_reset(DeviceState *dev) {
     TPM2State *s = TPM2(dev);
     s->ctrl = 0;
@@ -449,15 +709,21 @@ static const VMStateDescription vmstate_tpm2 = {
         VMSTATE_UINT32(ctrl, TPM2State),
         VMSTATE_UINT32(status, TPM2State),
         VMSTATE_UINT32(key_generated, TPM2State),
+        //VMSTATE_MEMORY_REGION(nv_bank_mem, TPM2State),  //We need also to maintain non-volatile storage
         VMSTATE_END_OF_LIST()
     }
 };
 
 static void tpm2_init(Object *obj) {
     TPM2State *s = TPM2(obj);
+    /*
     sysbus_init_irq(SYS_BUS_DEVICE(obj), &s->irq);
     memory_region_init_io(&s->mmio, obj, &tpm2_mmio_ops, s, TYPE_TPM2, 0x20);
     sysbus_init_mmio(SYS_BUS_DEVICE(obj), &s->mmio);
+    */
+       // tpm2_nv_init(s);
+
+    //tpm2_test_definespace(s);
 }
 
 static void tpm2_class_init(ObjectClass *klass, void *data) {
@@ -465,6 +731,7 @@ static void tpm2_class_init(ObjectClass *klass, void *data) {
     device_class_set_legacy_reset(dc, tpm2_reset);
     dc->vmsd = &vmstate_tpm2;
     dc->desc = "TPM 2.0 custom device";  // <-- This must be set!
+    dc->realize = tpm2_realize;
 }
 
 static const TypeInfo tpm2_info = {

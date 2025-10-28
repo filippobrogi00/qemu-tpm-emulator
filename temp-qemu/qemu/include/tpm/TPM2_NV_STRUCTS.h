@@ -14,7 +14,7 @@ typedef uint32_t TPMA_NV;       // NV Index attributes
 typedef uint16_t TPMI_ALG_HASH; // Hash algorithm identifier
 typedef uint8_t  BYTE;          // 8-bit byte
 
-#define MAX_NV_INDEX_SIZE 1024 // Platform-defined max NV Index size
+#define MAX_NV_INDEX_SIZE 1024 // Platform-defined max NV Index size. //This should be changed
 #define TPM2B_DIGEST_SIZE 32   // Size of policy digest for most algorithms
 
 

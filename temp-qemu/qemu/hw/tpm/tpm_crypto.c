@@ -1,10 +1,8 @@
-#include <openssl/evp.h> // EVP_MD OpenSSL type
-#include <openssl/hmac.h>
-#include <openssl/rsa.h>
+#include "tpm/tpm2_crypto.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-
+#define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ## __VA_ARGS__)
 /**
  * @brief Compute SHA-256 digest using OpenSSL EVP interface.
  *
@@ -177,30 +175,61 @@ TPM2_AES_CFB_Crypt (const uint8_t *key, int keylen,
     default:
       goto cleanup;
     }
+    TPM2_LOG("TPM2_AES_CFB_Crypt: Using AES-%d-CFB128\n", keylen * 8);
 
-  // Prime the context with the cipher before adjusting the key length
-  if (EVP_CipherInit_ex (ctx, cipher, NULL, NULL, NULL, enc) != 1)
+  /*
+  // Set cipher keylength
+  if (EVP_CIPHER_CTX_set_key_length (ctx, keylen) != 1) //Error is here.
     goto cleanup;
 
-  // Set key length
-  if (EVP_CIPHER_CTX_set_key_length (ctx, keylen) != 1)
+  TPM2_LOG("TPM2_AES_CFB_Crypt: Key length set to %d bytes\n", keylen);
+
+  // Encrypt using AES, leave provider, key, and IV empty
+  if (EVP_CipherInit_ex (ctx, cipher, NULL, key, iv, enc) != 1)
     goto cleanup;
 
-  // Now set key and IV
-  if (EVP_CipherInit_ex (ctx, NULL, NULL, key, iv, enc) != 1)
-    goto cleanup;
+  TPM2_LOG("TPM2_AES_CFB_Crypt: Cipher initialized for %s\n", enc ? "encryption" : "decryption");
+ */
 
+  
+
+  /* Set cipher type and operation mode (no key/IV yet) */
+    if (EVP_CipherInit_ex(ctx, cipher, NULL, NULL, NULL, enc) != 1) {
+        TPM2_LOG("TPM2_AES_CFB_Crypt: EVP_CipherInit_ex (set cipher) failed\n");
+        goto cleanup;
+    }
+
+    /*  Set custom key length (if needed) */
+    if (EVP_CIPHER_CTX_set_key_length(ctx, keylen) != 1) {
+        TPM2_LOG("TPM2_AES_CFB_Crypt: EVP_CIPHER_CTX_set_key_length failed\n");
+        goto cleanup;
+    }
+
+    /*  Apply key and IV, now ready for use */
+    if (EVP_CipherInit_ex(ctx, NULL, NULL, key, iv, enc) != 1) {
+        TPM2_LOG("TPM2_AES_CFB_Crypt: EVP_CipherInit_ex (set key/IV) failed\n");
+        goto cleanup;
+    }
+
+
+  
   int outlen = 0, tmplen = 0;
   if (EVP_CipherUpdate (ctx, out, &outlen, in, (int)inlen) != 1)
     goto cleanup;
 
+  TPM2_LOG("TPM2_AES_CFB_Crypt: Processed %d bytes\n", outlen);
+
+ 
   // Output cleaning
   EVP_CipherFinal_ex (ctx, out + outlen, &tmplen);
+  TPM2_LOG("TPM2_AES_CFB_Crypt: Finalized, additional %d bytes\n", tmplen);
 
   EVP_CIPHER_CTX_free (ctx);
+  TPM2_LOG("TPM2_AES_CFB_Crypt: Total output bytes %d\n", outlen + tmplen);
   return (outlen + tmplen);
 
 cleanup:
+  TPM2_LOG("TPM2_AES_CFB_Crypt: Error during processing\n");
   EVP_CIPHER_CTX_free (ctx);
   return 0;
 }
@@ -279,4 +308,156 @@ TPM2_RSA_Sign (EVP_PKEY      *pkey,
 cleanup:
   EVP_PKEY_CTX_free (ctx);
   return ret;
+}
+
+
+TPM_RC tpm2_CreatePrimary(TPM2State *s,
+                   uint32_t primaryHandle,
+                   const TPM2B_SENSITIVE_CREATE *inSensitive,
+                   const TPM2B_PUBLIC *inPublic,
+                   const TPM2B_DATA *outsideInfo,        /* unused */
+                   const TPML_PCR_SELECTION *creationPCR, /* unused */
+                   TPM_HANDLE *objectHandle,
+                   TPM2B_PUBLIC *outPublic,
+                   TPM2B_NAME *name){
+    (void)outsideInfo;
+    (void)creationPCR;
+
+    const uint8_t *seed = NULL;
+    const uint8_t *proof = NULL;
+
+    /* 1. Select hierarchy materials */
+    switch (primaryHandle) {
+    case TPM_RH_OWNER:
+        seed = s->sps;  proof = s->shProof; break;
+    case TPM_RH_PLATFORM:
+        seed = s->pps;  proof = s->phProof; break;
+    case TPM_RH_ENDORSEMENT:
+        seed = s->eps;  proof = s->ehProof; break;
+    default:
+        return TPM_RC_HIERARCHY;
+    }
+    /* 2. Initialize the sensitive area in state */
+    TPM2B_SENSITIVE *sens = &s->primary_sensitive;
+    memset(sens, 0, sizeof(*sens));
+
+    sens->sensitiveArea.sensitiveType = inPublic->publicArea.type;
+    sens->sensitiveArea.authValue = inSensitive->sensitive.userAuth;
+    memcpy(sens->sensitiveArea.seedValue.buffer, seed, 32);
+    sens->sensitiveArea.seedValue.size = 32;
+    /* Generate a deterministic ECC P-256 key from seed using KDFa */
+    const TPMT_PUBLIC *tmpl = &inPublic->publicArea;
+    if (tmpl->type != TPM_ALG_ECC)
+        return TPM_RC_ASYMMETRIC;
+    uint8_t priv[32];
+
+
+
+
+
+
+
+
+TPM2_LOG("---- [TPM2 DEBUG] Parameters before TPM2_KDFa ----\n");
+TPM2_LOG("  seed ptr:  %p\n", (void *)seed);
+TPM2_LOG("  proof ptr: %p\n", (void *)proof);
+TPM2_LOG("  tmpl ptr:  %p\n", (void *)tmpl);
+TPM2_LOG("  EVP_sha256(): %p\n", (void *)EVP_sha256());
+TPM2_LOG("  priv buffer ptr: %p\n", (void *)priv);
+
+if (seed) {
+    TPM2_LOG("  seed[0..7]: ");
+    for (int i = 0; i < 8; i++)
+        qemu_log("%02X ", seed[i]);
+    qemu_log("\n");
+} else {
+    TPM2_LOG("  ERROR: seed is NULL!\n");
+}
+
+if (proof) {
+    TPM2_LOG("  proof[0..7]: ");
+    for (int i = 0; i < 8; i++)
+        qemu_log("%02X ", proof[i]);
+    qemu_log("\n");
+} else {
+    TPM2_LOG("  ERROR: proof is NULL!\n");
+}
+
+if (tmpl)
+    TPM2_LOG("  tmpl->type = 0x%04X  tmpl->nameAlg = 0x%04X\n",
+             tmpl->type, tmpl->nameAlg);
+else
+    TPM2_LOG("  ERROR: tmpl is NULL!\n");
+
+TPM2_LOG("--------------------------------------------------\n");
+
+/* Sanity checks before KDFa call */
+if (!seed) {
+    TPM2_LOG("CreatePrimary: seed pointer is NULL! (hierarchy 0x%08X)\n", primaryHandle);
+    return TPM_RC_FAILURE;
+}
+if (!priv) {
+    TPM2_LOG("CreatePrimary: priv buffer is NULL!\n");
+    return TPM_RC_FAILURE;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+    TPM2_KDFa(EVP_sha256(), seed, 32, "PRIMARY", 256, priv); //This doesn't work
+
+
+    /* Use OpenSSL to compute Q = d·G */
+    EC_GROUP *grp = EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1);
+    EC_POINT *Q = EC_POINT_new(grp);
+    BIGNUM *d = BN_bin2bn(priv, 32, NULL);
+    EC_POINT_mul(grp, Q, d, NULL, NULL, NULL);
+
+    BIGNUM *x = BN_new(), *y = BN_new();
+    EC_POINT_get_affine_coordinates(grp, Q, x, y, NULL);
+
+    uint8_t pubx[32], puby[32];
+    BN_bn2binpad(x, pubx, 32);
+    BN_bn2binpad(y, puby, 32);
+
+    BN_free(x); BN_free(y); EC_POINT_free(Q); EC_GROUP_free(grp);
+
+
+    /* Store the private key inside sensitive->sensitiveArea.sensitive.ecc */
+    sens->sensitiveArea.sensitive.ecc.size = 32;
+    memcpy(sens->sensitiveArea.sensitive.ecc.buffer, priv, 32);
+
+    /* 3. Build outPublic */
+    memset(outPublic, 0, sizeof(*outPublic));
+    outPublic->size = sizeof(TPMT_PUBLIC);
+    outPublic->publicArea = *tmpl;
+    outPublic->publicArea.unique.ecc.x.size = 32;
+    outPublic->publicArea.unique.ecc.y.size = 32;
+    memcpy(outPublic->publicArea.unique.ecc.x.buffer, pubx, 32);
+    memcpy(outPublic->publicArea.unique.ecc.y.buffer, puby, 32);
+
+    s->primary_public = *outPublic; /* persist inside TPM state */
+
+    /* 4. Compute Name = nameAlg || H(nameAlg, TPMT_PUBLIC) */
+    uint8_t hash[32];
+    TPM2_SHA256((const uint8_t *)&outPublic->publicArea,
+                sizeof(TPMT_PUBLIC), hash);
+    name->size = 2 + 32;
+    name->name[0] = (TPM_ALG_SHA256 >> 8) & 0xFF;
+    name->name[1] = TPM_ALG_SHA256 & 0xFF;
+    memcpy(name->name + 2, hash, 32);
+
+    s->primary_name = *name; /* persist inside TPM state */
+
+
+
+    return TPM_RC_SUCCESS;
 }

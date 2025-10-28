@@ -5,6 +5,10 @@
 #include "tpm2_structures.h"
 #include "tpm2_interfaces.h"
 #include "tpm2_device.h"
+#include "qemu/log.h"
+
+#define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ##__VA_ARGS__)
+
 
 struct NVEntry;                 // This is defined later on
 typedef struct TPM2State TPM2State;  /* forward declaration */
@@ -142,5 +146,21 @@ TPM_RC tpm2_nv_define_space(TPM2State *s,
     TPMI_RH_PROVISION authHandle,
     const TPM2B_AUTH *auth,         /* new index auth */
     const TPM2B_NV_PUBLIC *public);
+
+void tpm2_nv_init(TPM2State *s);
+void tpm2_nv_cleanup(TPM2State *s);
+
+TPM_RC nv_write_crypt_to_bank(TPM2State *s,
+                              struct NVEntry *e,
+                              const uint8_t *plain,
+                              uint16_t len,
+                              uint16_t offset);
+
+TPM_RC nv_read_decrypt_from_bank(TPM2State *s,
+                                 struct NVEntry *e,
+                                 uint8_t *out,
+                                 uint16_t len,
+                                 uint16_t offset);
+
 
 #endif // TPM_NV_STRUCTURES_H

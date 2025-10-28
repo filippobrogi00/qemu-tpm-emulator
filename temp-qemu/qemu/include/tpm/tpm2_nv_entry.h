@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-
+//#include "tpm2_structures.h"
 /* Pull these from your TPM Part 2 header you already have */
 #include "tpm2_nv.h"   /* TPMS_NV_PUBLIC, TPMA_NV, TPM_NT_*, etc. */
 #include "tpm2_rc.h"
@@ -31,17 +31,21 @@ typedef struct NVEntry {
     uint16_t nameLen;
 
     /* backing data */
-    uint8_t *data;               /* length == pub.dataSize */
-    uint16_t dataLen;
+    uint8_t *data;               /* host pointer to encrypted area: s->nv_bank_ptr + data_off */
+    uint16_t dataLen;            /* equals pub.dataSize */
 
+    /* per-entry IV for AES-CFB or AES-GCM */
+    uint8_t *iv_ptr;              /* 16 bytes for AES block size */
+    
     /* mirrors of dynamic bits */
-    bool written;                /* TPMA_NV_WRITTEN (set after first init/write) :contentReference[oaicite:1]{index=1} */
-    bool readLocked;             /* TPMA_NV_READLOCKED – clears on Startup(CLEAR) :contentReference[oaicite:2]{index=2} */
-    bool writeLocked;            /* TPMA_NV_WRITELOCKED semantics per spec :contentReference[oaicite:3]{index=3} */
+    bool written;                /* TPMA_NV_WRITTEN (set after first init/write)  */
+    bool readLocked;             /* TPMA_NV_READLOCKED – clears on Startup(CLEAR) */
+    bool writeLocked;            /* TPMA_NV_WRITELOCKED semantics per spec */
 
-    /* simple integrity (optional): HMAC over data using a TPM-internal key, if you want */
+    /* simple integrity (optional): HMAC over data using a TPM-internal key, */
     uint8_t *integrity;          /* optional blob */
     uint16_t integrityLen;
 } NVEntry;
+
 
 #endif /* TPM2_NV_ENTRY_H */

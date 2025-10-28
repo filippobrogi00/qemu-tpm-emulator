@@ -51,7 +51,7 @@ typedef uint32_t TPM_RH; // Permanent handle type
 #define TPM_RH_ENDORSEMENT 0x4000000B // K, A, P – Endorsement Primary Seed (EPS)
 #define TPM_RH_PLATFORM    0x4000000C // K, A, P – Platform Primary Seed (PPS)
 #define TPM_RH_PLATFORM_NV 0x4000000D // C – control for phEnableNV
-
+//
 // Vendor-specific authorization range
 #define TPM_RH_AUTH_00 0x40000010 // A – start of vendor-specific auth handles
 #define TPM_RH_AUTH_FF 0x4000010F // A – end of vendor-specific auth handles

@@ -2,6 +2,7 @@
 #define TPM_ALG_ID_H
 
 #include "tpm2_base_types.h" /* for UINT16 */
+#define TPM_ECC_NIST_P256 0x0003  /* per TPM 2.0 Part 2, Table 183 */ //ellittic curve crypto id
 
 /*
  * TPM 2.0 Part 2: Structures

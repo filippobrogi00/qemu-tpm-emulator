@@ -12,6 +12,8 @@
 #include "tpm/tpm2_interfaces.h"
 #include "tpm/tpm2_nv.h"
 #include "tpm/tpm2_nv_entry.h"
+
+
 #include "tpm/tpm2_rc.h"
 #include "tpm/tpm2_structures.h"
 
@@ -61,20 +63,79 @@ impl_supports_undefine_policy_delete (TPM2State *s)
 }
 
 /* NV entry allocation & persistence stubs */
-static inline NVEntry *
-nv_entry_alloc (TPM_NV_INDEX index, uint16_t dataSize,
-                uint16_t nameAlg, TPMA_NV attrs,
-                const void *auth)
+
+static NVEntry *nv_entry_alloc(TPM2State *s,
+                               TPM_NV_INDEX index,
+                               uint16_t dataSize,
+                               uint16_t nameAlg,
+                               TPMA_NV attrs,
+                               const void *auth)
 {
-  (void)index;
-  (void)nameAlg;
-  (void)attrs;
-  (void)auth;
-  NVEntry *e = g_malloc0 (sizeof (NVEntry));
-  e->data    = g_malloc0 (dataSize);
-  e->dataLen = dataSize;
-  e->written = false; /* per spec: starts uninitialized */
-  return e;
+    if (!s || !s->nv_bank_ptr) {
+        TPM2_LOG("nv_entry_alloc: NV bank not initialized\n");
+        return NULL;
+    }
+
+    /* Check space in NV bank */
+    size_t need = 16 + dataSize;
+    if (s->nv_alloc_offset + need > s->nv_bank_size)
+     {
+        TPM2_LOG("nv_entry_alloc: NV bank full (need=%u bytes)\n", need);
+        return NULL; //this is not the correct error code.
+    }
+
+
+    NVEntry *e = g_malloc0(sizeof(NVEntry));
+
+    e->pub.nvIndex    = index;
+    e->pub.nameAlg    = nameAlg;
+    e->pub.attributes = attrs;
+    e->pub.dataSize   = dataSize;
+    memset(e->pub.authPolicy, 0, sizeof(e->pub.authPolicy));
+
+    /* Assign a slice of the NV bank */
+    uint8_t *base = s->nv_bank_ptr + s->nv_alloc_offset;
+    e->iv_ptr = base;                /* first 16 bytes */
+    e->data   = base + 16;          
+    e->dataLen = dataSize;
+    memset(e->iv_ptr, 0, 16);
+    memset(e->data, 0, e->dataLen);
+
+    /* Advance allocation cursor */
+    s->nv_alloc_offset += need;
+
+    e->written      = false;
+    e->readLocked   = false;
+    e->writeLocked  = false;
+
+    TPM2_LOG("nv_entry_alloc: index=0x%08X offset=%zu size=%u\n",
+             index, s->nv_alloc_offset - need, need);
+
+    return e;
+}
+
+
+/* Free an NVEntry and its associated data */
+static inline void nv_entry_free(NVEntry *e)
+{
+    if (!e)
+        return;
+    if (e->data)
+        e->data = NULL;  // owned by NV bank
+
+    g_free(e);
+}
+
+
+/* Free an NVEntry and its associated data */
+static inline void nv_entry_free(NVEntry *e)
+{
+    if (!e)
+        return;
+    if (e->data)
+        e->data = NULL;  // owned by NV bank
+
+    g_free(e);
 }
 
 static inline bool
@@ -247,10 +308,10 @@ tpm2_nv_define_space (TPM2State             *s,
   if (attrs.policyDelete && !impl_supports_undefine_policy_delete (s))
     return TPM_RC_ATTRIBUTES;
 
-  /* 13) Create new NV entry */
-  NVEntry *e = nv_entry_alloc (index, dataSize, nameAlg, attrs, auth);
-  if (!e)
-    return TPM_RC_MEMORY;
+    /* 13) Create new NV entry */
+    NVEntry *e = nv_entry_alloc(s,index, dataSize, nameAlg, attrs, auth);
+    if (!e)
+        return TPM_RC_MEMORY;
 
   /* 14) Insert and mark dirty */
   g_hash_table_insert (s->nv_map, GINT_TO_POINTER (index), e);
@@ -273,7 +334,120 @@ tpm2_nv_define_space (TPM2State             *s,
   printf ("[TPM2_NV_DefineSpace] tag=0x%04X size=%u rc=0x%X\n",
           resp.tag, resp.responseSize, resp.responseCode);
 
-  return rc;
+    return rc; //change this to response buffer in real implementation
+}
+
+/* --------------------------------------------------------------------- */
+void tpm2_nv_init(TPM2State *s)
+{
+    if (!s) {
+        TPM2_LOG("Error: TPM2State pointer is NULL\n");
+        return;
+    }
+
+    if (s->nv_map) {
+        TPM2_LOG("NV subsystem already initialized\n");
+        return;
+    }
+
+    /* Allocate GLib hash table to map NV indices → NVEntry* */
+    s->nv_map = g_hash_table_new_full(
+        g_direct_hash,           /* key hash */
+        g_direct_equal,          /* key equality */
+        NULL,                    /* no key destructor */
+        (GDestroyNotify)nv_entry_free /* free NVEntry on removal */
+    );
+
+    if (!s->nv_map) {
+        TPM2_LOG("Failed to allocate NV map (out of memory)\n");
+        return;
+    }
+
+    s->nv_count = 0;
+    s->nv_dirty = false;
+    s->nv_bank_size = TPM2_NVSTORAGE_SIZE;
+    s->nv_alloc_offset = 0;   // Start of the NV bank
+
+
+    TPM2_LOG("NV subsystem initialized (bank size=%u)\n", s->nv_bank_size);
+}
+
+/*
+ * Cleanup all NV entries and free resources.
+ * Safe to call multiple times.
+ */
+void tpm2_nv_cleanup(TPM2State *s)
+{
+    if (!s) {
+        TPM2_LOG("Error: TPM2State pointer is NULL\n");
+        return;
+    }
+
+    if (s->nv_map) {
+        g_hash_table_remove_all(s->nv_map);
+        g_hash_table_destroy(s->nv_map);
+        s->nv_map = NULL;
+        TPM2_LOG("NV subsystem cleaned up\n");
+    }
+
+    s->nv_count = 0;
+    s->nv_dirty = false;
+}
+
+
+TPM_RC nv_write_crypt_to_bank(TPM2State *s, NVEntry *e,
+                                     const uint8_t *plain, uint16_t len, uint16_t offset)
+{
+    if (!s || !e || !plain) return TPM_RC_FAILURE; 
+    if ((uint32_t)offset + len > e->dataLen) return TPM_RC_SIZE; //Data is too big to be written into a nvEntry
+    TPM2_LOG("[NV] nv_write_crypt_to_bank: len=%u offset=%u\n", len, offset);
+
+
+    // Re-roll IV (optional but recommended)  //Iv needs to be maintaned per entry
+    if (RAND_bytes(e->iv_ptr, 16) != 1) {
+        TPM2_LOG("[NV] RAND_bytes(IV) failed\n");
+        return TPM_RC_FAILURE;
+    }
+
+    TPM2_LOG("[NV] RANDS: ");
+
+    //Encrypt plain → ciphertext in-place inside NV bank 
+    uint8_t *ct = e->data + offset;
+    TPM2_LOG("Params before Crypt: ");
+    TPM2_LOG("Key ptr: %p ", s->primary_sensitive.sensitiveArea.sensitive.ecc.buffer);
+    TPM2_LOG("IV ptr: %p ", e->iv_ptr);
+    TPM2_LOG("Plain ptr: %p ", plain);
+    TPM2_LOG("Ct ptr: %p ", ct);
+    TPM2_LOG("Len: %u\n", len);
+  
+    int outlen = TPM2_AES_CFB_Crypt(s->primary_sensitive.sensitiveArea.sensitive.ecc.buffer,s->primary_sensitive.sensitiveArea.sensitive.ecc.size,
+                                    e->iv_ptr, plain, len, ct, 1);
+
+                                    
+    if (outlen <= 0) return TPM_RC_FAILURE;
+    TPM2_LOG("[NV] After Crypt: ");
+    e->written = true;
+    return TPM_RC_SUCCESS;
+}
+
+
+
+TPM_RC nv_read_decrypt_from_bank(TPM2State *s, NVEntry *e,
+                                        uint8_t *out, uint16_t len, uint16_t offset)
+{
+    if (!s || !e || !out)
+        return TPM_RC_FAILURE;
+
+    if ((uint32_t)offset + len > e->dataLen)
+        return TPM_RC_SIZE;
+
+    uint8_t *ct = e->data + offset;
+    int outlen = TPM2_AES_CFB_Crypt(
+        s->primary_sensitive.sensitiveArea.sensitive.ecc.buffer,
+        s->primary_sensitive.sensitiveArea.sensitive.ecc.size,
+        e->iv_ptr, ct, len, out, 0);   //decrypt stuff
+
+    return (outlen > 0) ? TPM_RC_SUCCESS : TPM_RC_FAILURE;
 }
 
 
