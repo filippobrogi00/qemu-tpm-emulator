@@ -29,28 +29,30 @@ static const uint8_t CMD_GET_RANDOM[] = {
 static const uint8_t CMD_CREATE_PRIMARY[] = {
   // Header (10 bytes)
   0x80, 0x01,                         // Tag: TPM_ST_NO_SESSIONS
-  0x00, 0x00, 0x00, 0x32,             // Size: 50 bytes
+  0x00, 0x00, 0x00, 0x44,             // Size: 68 bytes
   0x00, 0x00, 0x01, 0x31,             // Code: TPM_CC_CreatePrimary
 
   // Body (40 bytes)
   0x40, 0x00, 0x00, 0x01,             // authHandle: TPM_RH_OWNER
 
   // inSensitive (TPM2B_SENSITIVE_CREATE)
-  0x00, 0x04,                         // size = 4
-  0x00, 0x00,                         //   userAuth.size = 0
+  0x00, 0x0A,                         // size = 10
+  0x00, 0x06,                         //   userAuth.size = 6
+  0x70, 0x61, 0x73, 0x73, 0x77, 0x64, //   "passwd"
   0x00, 0x00,                         //   data.size = 0
 
   // inPublic (TPM2B_PUBLIC)
-  0x00, 0x16,                         // size = 22 (TPMS_PUBLIC size below)
-  0x00, 0x01,                         //   type: TPM_ALG_RSA
-  0x00, 0x0B,                         //   nameAlg: TPM_ALG_SHA256
-  0x00, 0x00, 0x00, 0x72,             //   objectAttributes
+  0x00, 0x22,                         // size = 32
+  0x00, 0x23,                         //   type: TPM_ALG_ECC
+  0x00, 0x0B,                         //   nameAlg: SHA256
+  0x00, 0x03, 0x00, 0x72,             //   objectAttributes
   0x00, 0x00,                         //   authPolicy.size = 0
-  0x00, 0x10,                         //   symmetric: TPM_ALG_NULL
-  0x00, 0x10,                         //   scheme: TPM_ALG_NULL
-  0x08, 0x00,                         //   keyBits: 2048
-  0x00, 0x00, 0x00, 0x00,             //   exponent: 0 (default)
-  0x00, 0x00,                         //   unique.size = 0
+  0x00, 0x10, 0x00, 0x00, 0x00, 0x00, //   symmetric: TPM_ALG_NULL
+  0x00, 0x10, 0x00, 0x00, 0x00, 0x00, //   scheme: TPM_ALG_NULL
+  0x00, 0x03,                         //   curveID = NIST_P256
+  0x00, 0x10, 0x00, 0x00, 0x00, 0x00, //   kdf = TPM_ALG_NULL
+  0x00, 0x00,                         //   unique.x.size
+  0x00, 0x00,                         //   unique.y.size
 
   // outsideInfo (TPM2B_DATA)
   0x00, 0x00,                         // size = 0
@@ -65,14 +67,39 @@ static const uint8_t CMD_NV_DEFINE_SPACE[] = {
   0x80, 0x01,             // Tag: TPM_ST_NO_SESSIONS
   0x00, 0x00, 0x00, 0x20, // Size: 32 bytes
   0x00, 0x00, 0x01, 0x2A, // Code: TPM_CC_NV_DefineSpace
-  0x40, 0x00, 0x00, 0x0C, // authHandle: TPM_RH_PLATFORM
+  0x40, 0x00, 0x00, 0x01, // authHandle: TPM_RH_OWNER
   0x00, 0x00,             // auth.size = 0
   0x00, 0x0E,             // publicArea.size = 14
   0x01, 0x00, 0x00, 0x01, // nvIndex: 0x01000001
   0x00, 0x0B,             // nameAlg: TPM_ALG_SHA256
-  0x00, 0x00, 0x40, 0x07, // attributes
+  0x02, 0x4C, 0x00, 0x06, // attributes
   0x00, 0x00,             // authPolicy.size = 0
   0x00, 0x20              // dataSize: 32
+};
+
+// TPM2_NV_Write - Write "TEST" to index 0x01000001
+static const uint8_t CMD_NV_WRITE[] = {
+  0x80, 0x01,             // Tag: TPM_ST_NO_SESSIONS
+  0x00, 0x00, 0x00, 0x1C, // Size: 28 bytes
+  0x00, 0x00, 0x01, 0x37, // Code: TPM_CC_NV_Write
+  0x40, 0x00, 0x00, 0x0C, // authHandle: TPM_RH_PLATFORM
+  0x01, 0x00, 0x00, 0x01, // nvIndex: 0x01000001
+  0x00, 0x00,             // authSession.size = 0
+  0x00, 0x04,             // data.size = 4
+  'T', 'E', 'S', 'T',     // data = "TEST"
+  0x00, 0x00              // offset = 0
+};
+
+// TPM2_NV_Read - Read 4 bytes from index 0x01000001
+static const uint8_t CMD_NV_READ[] = {
+  0x80, 0x01,             // Tag: TPM_ST_NO_SESSIONS
+  0x00, 0x00, 0x00, 0x18, // Size: 24 bytes
+  0x00, 0x00, 0x01, 0x4E, // Code: TPM_CC_NV_Read
+  0x40, 0x00, 0x00, 0x0C, // authHandle: TPM_RH_PLATFORM
+  0x01, 0x00, 0x00, 0x01, // nvIndex: 0x01000001
+  0x00, 0x00,             // authSession.size = 0
+  0x00, 0x04,             // sizeToRead = 4
+  0x00, 0x00              // offset = 0
 };
 
 /**
@@ -203,6 +230,8 @@ void print_menu(void)
     UART_printf("1: TPM2_GetRandom (32 bytes)\n");
     UART_printf("2: TPM2_CreatePrimary (RSA 2048 key)\n");
     UART_printf("3: TPM2_NV_DefineSpace (32-byte index)\n");
+    UART_printf("4: TPM2_NV_Write (\"TEST\" to index)\n");
+    UART_printf("5: TPM2_NV_Read (4 bytes from index)\n");
     UART_printf("Select an option: ");
 }
 
@@ -236,7 +265,6 @@ void parse_response_header(const uint8_t *resp_buf)
 int main(void) {
   UART_init();
   UART_printf("--- TPM Firmware Test Started ---\n");
-  UART_printf("All commands are pre-built and properly formatted.\n");
 
   uint8_t response_buffer[1024];
   const uint8_t *cmd_to_send = NULL;
@@ -262,6 +290,16 @@ int main(void) {
       case '3':
         cmd_to_send = CMD_NV_DEFINE_SPACE;
         cmd_size = sizeof(CMD_NV_DEFINE_SPACE);
+        break;
+
+      case '4':
+        cmd_to_send = CMD_NV_WRITE;
+        cmd_size = sizeof(CMD_NV_WRITE);
+        break;
+
+      case '5':
+        cmd_to_send = CMD_NV_READ;
+        cmd_size = sizeof(CMD_NV_READ);
         break;
 
     default:

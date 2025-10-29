@@ -451,12 +451,16 @@ if (attrs.nvType == TPM_NT_COUNTER ||
 if ((uint32_t)offset > e->dataLen)
     return TPM_RC_VALUE;
 
-if ((uint32_t)offset + data->size > e->dataLen)
-    return TPM_RC_NV_RANGE;
+if ((uint32_t)offset + data->size > e->dataLen) { 
+      TPM2_LOG("TPM2_NV_Write_Primo: idx=0x%X off=%u size=%u exceeds dataLen=%u\n", nvIndex, offset, data->size, e->dataLen);
+      return TPM_RC_NV_RANGE;
+}  
 
 /* WriteAll: data size must match entire NV region */
-if (attrs.writeAll && data->size != e->dataLen)
+if (attrs.writeAll && data->size != e->dataLen) {
+    TPM2_LOG("TPM2_NV_Write_secondo: idx=0x%X off=%u size=%u exceeds dataLen=%u\n", nvIndex, offset, data->size, e->dataLen);
     return TPM_RC_NV_RANGE;
+}
 
 /* ── Simplified authorization policy ── */
 if (!(attrs.ownerWrite ||
@@ -516,4 +520,132 @@ TPM_RC nv_read_decrypt_from_bank(TPM2State *s, NVEntry *e,
     return (outlen > 0) ? TPM_RC_SUCCESS : TPM_RC_FAILURE;
 }
 
+// static TPM_RC nv_check_write_auth(TPM2State *s, TPMI_RH_PROVISION authHandle, TPM_NV_INDEX nvIndex, NVEntry **entry_out)
+// {
+//   NVEntry *e = g_hash_table_lookup(s->nv_map, GINT_TO_POINTER(nvIndex));
+//   if (!e) return TPM_RC_HANDLE;
+
+//   const TPMA_NV *attrs = &e->pub.attributes;
+
+//   bool platformAuth = (authHandle == TPM_RH_PLATFORM);
+//   bool ownerAuth = (authHandle == TPM_RH_OWNER);
+
+//   if (platformAuth) {
+//       if (!attrs->ppWrite)
+//           return TPM_RC_NV_AUTHORIZATION;
+//   } else if (ownerAuth) {
+//       if (!attrs->ownerWrite)
+//           return TPM_RC_NV_AUTHORIZATION;
+//   } else {
+//       // AuthHandle must be the same NV index for authWrite/policyWrite
+//       if (authHandle != nvIndex)
+//           return TPM_RC_NV_AUTHORIZATION;
+
+//       if (!attrs->authWrite && !attrs->policyWrite)
+//           return TPM_RC_NV_AUTHORIZATION;
+
+//       TPM2_LOG("Warning: Simplified NV write auth, skipping full policy check\n");
+//       return TPM_RC_NV_AUTHORIZATION; // still fail until full policy implemented
+//   }
+
+//   *entry_out = e;
+//   return TPM_RC_SUCCESS;
+// }
+
+
+
+// TPM_RC tpm2_nv_write(TPM2State *s, TPM_HANDLE authHandle, TPM_NV_INDEX nvIndex, const TPM2B_MAX_NV_BUFFER *data, UINT16 offset) {
+//   TPM_RC rc;
+//   NVEntry *e = NULL;
+
+//   // 1. Find entry and check authorization
+//   rc = nv_check_write_auth(s, authHandle, nvIndex, &e);
+//   if (rc != TPM_RC_SUCCESS) return rc;
+
+//   // 2. Validate offset and size
+//   if ((UINT32)offset + data->size > e->pub.dataSize) return TPM_RC_NV_RANGE;
+
+//   // Check specific attribute rules (simplified)
+//   const TPMA_NV *attrs = &e->pub.attributes;
+//   if (attrs->writeAll && (offset != 0 || data->size != e->pub.dataSize)) {
+//     return TPM_RC_ATTRIBUTES; // WRITEALL requires full write
+//   }
+
+//   // 3. Perform the write (using existing crypto helper)
+//   TPM2_LOG("NV_Write: Index=0x%X, Size=%u, Offset=%u\n", nvIndex, data->size, offset);
+//   rc = nv_write_crypt_to_bank(s, e, data->buffer, data->size, offset);
+//   if (rc != TPM_RC_SUCCESS) return rc;
+
+//   // 4. Update state and mark dirty
+//   e->written = true;
+//   s->nv_dirty = true;
+//   // tpm2_nv_flush_dirty(s); // Persist immediately
+
+//   return TPM_RC_SUCCESS;
+// }
+
+
+// static TPM_RC nv_check_read_auth(TPM2State *s, TPM_HANDLE authHandle, TPM_NV_INDEX nvIndex, NVEntry **entry_out) {
+//   NVEntry *e = g_hash_table_lookup(s->nv_map, GINT_TO_POINTER(nvIndex));
+//   if (!e) return TPM_RC_HANDLE;
+
+//   const TPMA_NV *attrs = &e->pub.attributes;
+
+//   // Check if written (for non-partial writes)
+//   if (!attrs->writeAll && !attrs->written) return TPM_RC_NV_UNINITIALIZED;
+
+//   // Check hierarchy (simplified)
+//   bool platformAuth = (authHandle == TPM_RH_PLATFORM);
+//   if (platformAuth) {
+//     if (!attrs->ppRead) return TPM_RC_NV_AUTHORIZATION;
+//   } else if (authHandle == TPM_RH_OWNER) {
+//     if (!attrs->ownerRead) return TPM_RC_NV_AUTHORIZATION;
+//   } else {
+//     // AuthHandle must be index itself for authRead/policyRead
+//     if (authHandle != nvIndex) return TPM_RC_NV_AUTHORIZATION;
+//     // Simplified: Assume authRead/policyRead require specific auth
+//     if (!attrs->authRead && !attrs->policyRead) return TPM_RC_NV_AUTHORIZATION;
+//     // TODO: Full auth check needed here
+//     TPM2_LOG("Warning: NV_Read auth check simplified, assuming failure for auth/policy read\n");
+//     return TPM_RC_NV_AUTHORIZATION;
+//   }
+
+//   // Check locks
+//   if (attrs->readLocked) return TPM_RC_NV_LOCKED;
+
+//   *entry_out = e;
+//   return TPM_RC_SUCCESS;
+// }
+
+// TPM_RC tpm2_nv_read(TPM2State *s, TPM_HANDLE authHandle, TPM_NV_INDEX nvIndex, UINT16 sizeToRead, UINT16 offset, TPM2B_MAX_NV_BUFFER *data) {
+//   TPM_RC rc;
+//   NVEntry *e = NULL;
+
+//   // 1. Find entry and check authorization
+//   rc = nv_check_read_auth(s, authHandle, nvIndex, &e);
+//   if (rc != TPM_RC_SUCCESS) return rc;
+
+//   // 2. Validate offset and size
+//   if (sizeToRead > MAX_NV_BUFFER_SIZE) return TPM_RC_NV_RANGE; // Request exceeds TPM capability
+//   if ((UINT32)offset + sizeToRead > e->pub.dataSize) return TPM_RC_NV_RANGE; // Request exceeds index size
+
+//   // 3. Perform the read (using existing crypto helper)
+//   TPM2_LOG("NV_Read: Index=0x%X, Size=%u, Offset=%u\n", nvIndex, sizeToRead, offset);
+//   rc = nv_read_decrypt_from_bank(s, e, data->buffer, sizeToRead, offset);
+//   if (rc != TPM_RC_SUCCESS) return rc;
+
+//   // 4. Set output size
+//   data->size = sizeToRead;
+
+//   // 5. Handle READ_STCLEAR attribute
+//   if (e->pub.attributes.readStClear) {
+//     // Simplified: Assume ST_CLEAR clears the 'written' flag
+//     // A real TPM would use specific startup types
+//     e->written = false;
+//     s->nv_dirty = true;
+//     // tpm2_nv_flush_dirty(s);
+//   }
+
+//   return TPM_RC_SUCCESS;
+// }
 

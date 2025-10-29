@@ -160,3 +160,4 @@ typedef uint32_t TPM_HC; // Handle constant type
 // NV AC range
 #define NV_AC_FIRST (HR_NV_AC + 0)
 #define NV_AC_LAST  (HR_NV_AC + 0x0000FFFF)
+

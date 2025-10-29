@@ -2,9 +2,13 @@
 #define CC_UNMARSHAL_H
 
 #include <stdint.h>
+#include <string.h>
 #include "../tpm2_base_types.h"
 #include "../tpm2_rc.h"
 #include "../tpm2_interfaces.h"
+#include "../tpm2_handles.h"
+// qemu_log should be available as this file is included by tpm_hw.c
+// which already includes qemu/log.h
 
 /******************************
  * BASIC UNMARSHALING FUNCTIONS
@@ -19,12 +23,17 @@ static inline TPM_RC Unmarshal_UINT8(
     UINT8 *value,
     UINT32 *bytesRead)
 {
+    if (!buffer || !value || !bytesRead) {
+        return TPM_RC_FAILURE;
+    }
+    
     if (bufferSize < 1) {
         return TPM_RC_INSUFFICIENT;
     }
     
     *value = buffer[0];
     *bytesRead = 1;
+    // qemu_log("Unmarshal_UINT8: value=0x%02X\n", *value); // Optional: very verbose
     return TPM_RC_SUCCESS;
 }
 
@@ -37,12 +46,17 @@ static inline TPM_RC Unmarshal_UINT16(
     UINT16 *value,
     UINT32 *bytesRead)
 {
+    if (!buffer || !value || !bytesRead) {
+        return TPM_RC_FAILURE;
+    }
+    
     if (bufferSize < 2) {
         return TPM_RC_INSUFFICIENT;
     }
     
     *value = ((UINT16)buffer[0] << 8) | (UINT16)buffer[1];
     *bytesRead = 2;
+    qemu_log("[UNMARSHAL] UINT16: 0x%04X\n", *value);
     return TPM_RC_SUCCESS;
 }
 
@@ -55,6 +69,10 @@ static inline TPM_RC Unmarshal_UINT32(
     UINT32 *value,
     UINT32 *bytesRead)
 {
+    if (!buffer || !value || !bytesRead) {
+        return TPM_RC_FAILURE;
+    }
+    
     if (bufferSize < 4) {
         return TPM_RC_INSUFFICIENT;
     }
@@ -64,6 +82,7 @@ static inline TPM_RC Unmarshal_UINT32(
              ((UINT32)buffer[2] << 8)  |
              (UINT32)buffer[3];
     *bytesRead = 4;
+    qemu_log("[UNMARSHAL] UINT32: 0x%08X\n", *value);
     return TPM_RC_SUCCESS;
 }
 
@@ -76,6 +95,10 @@ static inline TPM_RC Unmarshal_UINT64(
     UINT64 *value,
     UINT32 *bytesRead)
 {
+    if (!buffer || !value || !bytesRead) {
+        return TPM_RC_FAILURE;
+    }
+    
     if (bufferSize < 8) {
         return TPM_RC_INSUFFICIENT;
     }
@@ -89,6 +112,7 @@ static inline TPM_RC Unmarshal_UINT64(
              ((UINT64)buffer[6] << 8)  |
              (UINT64)buffer[7];
     *bytesRead = 8;
+    qemu_log("[UNMARSHAL] UINT64: 0x%016lX\n", (unsigned long)*value);
     return TPM_RC_SUCCESS;
 }
 
@@ -103,6 +127,10 @@ static inline TPM_RC Unmarshal_TPM2B(
     UINT16 *dataSize,
     UINT32 *bytesRead)
 {
+    if (!buffer || !dataSize || !bytesRead) {
+        return TPM_RC_FAILURE;
+    }
+    
     TPM_RC rc;
     UINT32 offset = 0;
     UINT32 consumed;
@@ -114,18 +142,22 @@ static inline TPM_RC Unmarshal_TPM2B(
     }
     offset += consumed;
     
+    qemu_log("[UNMARSHAL] TPM2B: size=%u (max=%u)\n", *dataSize, maxSize);
+    
     // Validate size
     if (*dataSize > maxSize) {
+        qemu_log("[UNMARSHAL] TPM2B: Error TPM_RC_SIZE\n");
         return TPM_RC_SIZE;
     }
     
     if (bufferSize - offset < *dataSize) {
+        qemu_log("[UNMARSHAL] TPM2B: Error TPM_RC_INSUFFICIENT\n");
         return TPM_RC_INSUFFICIENT;
     }
     
-    // Copy data
-    for (UINT16 i = 0; i < *dataSize; i++) {
-        dataBuffer[i] = buffer[offset + i];
+    // Copy data (only if dataBuffer is provided)
+    if (dataBuffer && *dataSize > 0) {
+        memcpy(dataBuffer, buffer + offset, *dataSize);
     }
     offset += *dataSize;
     
@@ -170,6 +202,10 @@ static inline TPM_RC Unmarshal_CreatePrimary(
     CreatePrimary_Params *params,
     UINT32 *bytesRead)
 {
+    if (!buffer || !params || !bytesRead) {
+        return TPM_RC_FAILURE;
+    }
+    
     TPM_RC rc;
     UINT32 offset = 0;
     UINT32 consumed;
@@ -223,7 +259,7 @@ static inline TPM_RC Unmarshal_CreatePrimary(
  * @brief Unmarshal TPM2_NV_DefineSpace command parameters
  */
 typedef struct {
-    TPMI_RH_PROVISION authHandle;// TPMI_RH_PROVISION
+    UINT32 authHandle;// TPMI_RH_PROVISION
     UINT16 authSize;             // TPM2B_AUTH size
     UINT8  auth[64];             // TPM2B_AUTH buffer
     UINT16 publicSize;           // TPM2B_NV_PUBLIC size
@@ -241,9 +277,15 @@ static inline TPM_RC Unmarshal_NV_DefineSpace(
     NV_DefineSpace_Params *params,
     UINT32 *bytesRead)
 {
+    if (!buffer || !params || !bytesRead) {
+        return TPM_RC_FAILURE;
+    }
+    
     TPM_RC rc;
     UINT32 offset = 0;
     UINT32 consumed;
+    
+    qemu_log("[UNMARSHAL] --- Begin TPM2_NV_DefineSpace ---\n");
     
     // authHandle
     rc = Unmarshal_UINT32(buffer + offset, bufferSize - offset,
@@ -296,6 +338,144 @@ static inline TPM_RC Unmarshal_NV_DefineSpace(
     offset += consumed;
     
     *bytesRead = offset;
+    qemu_log("[UNMARSHAL] --- End TPM2_NV_DefineSpace (read %u bytes) ---\n", *bytesRead);
+    return TPM_RC_SUCCESS;
+}
+
+typedef struct {
+    TPM_HANDLE authHandle;
+    TPM_NV_INDEX nvIndex;
+    TPM2B_MAX_NV_BUFFER data;
+    UINT16 offset;
+} NV_Write_Params;
+
+typedef struct {
+    TPM_HANDLE authHandle;
+    TPM_NV_INDEX nvIndex;
+    UINT16 sizeToRead;
+    UINT16 offset;
+} NV_Read_Params;
+
+typedef struct {
+    TPM2B_MAX_NV_BUFFER data;
+} NV_Read_Response;
+
+// Helper to unmarshal TPM2B_MAX_NV_BUFFER
+static inline TPM_RC Unmarshal_TPM2B_MAX_NV_BUFFER(
+    const UINT8 *buffer, UINT32 bufferSize,
+    TPM2B_MAX_NV_BUFFER *target, UINT32 *bytesRead)
+{
+    if (!buffer || !target || !bytesRead) {
+        return TPM_RC_FAILURE;
+    }
+    
+    TPM_RC rc;
+    UINT32 offset = 0;
+    UINT32 consumed;
+
+    rc = Unmarshal_UINT16(buffer + offset, bufferSize - offset, &target->size, &consumed);
+    if (rc != TPM_RC_SUCCESS) return rc;
+    offset += consumed;
+    
+    qemu_log("[UNMARSHAL] TPM2B_MAX_NV_BUFFER: size=%u\n", target->size);
+
+    if (target->size > MAX_NV_BUFFER_SIZE) return TPM_RC_SIZE;
+    if (bufferSize - offset < target->size) return TPM_RC_INSUFFICIENT;
+
+    memcpy(target->buffer, buffer + offset, target->size);
+    offset += target->size;
+
+    *bytesRead = offset;
+    return TPM_RC_SUCCESS;
+}
+
+static inline TPM_RC Unmarshal_NV_Write(
+    const UINT8 *buffer, UINT32 bufferSize,
+    NV_Write_Params *params, UINT32 *bytesRead)
+{
+    if (!buffer || !params || !bytesRead) {
+        return TPM_RC_FAILURE;
+    }
+    
+    TPM_RC rc;
+    UINT32 offset = 0;
+    UINT32 consumed;
+    
+    qemu_log("[UNMARSHAL] --- Begin TPM2_NV_Write ---\n");
+
+    rc = Unmarshal_UINT32(buffer + offset, bufferSize - offset, &params->authHandle, &consumed);
+    if (rc != TPM_RC_SUCCESS) return rc;
+    offset += consumed;
+
+    rc = Unmarshal_UINT32(buffer + offset, bufferSize - offset, &params->nvIndex, &consumed);
+    if (rc != TPM_RC_SUCCESS) return rc;
+    offset += consumed;
+
+    // Skip Auth Session Area (assuming size=0)
+    UINT16 authSize;
+    rc = Unmarshal_UINT16(buffer + offset, bufferSize - offset, &authSize, &consumed);
+    if (rc != TPM_RC_SUCCESS) return rc;
+    offset += consumed;
+    qemu_log("[UNMARSHAL] NV_Write: authSize=%u\n", authSize);
+    if (authSize != 0) return TPM_RC_VALUE; // We don't support auth sessions here
+
+    // Unmarshal data
+    rc = Unmarshal_TPM2B_MAX_NV_BUFFER(buffer + offset, bufferSize - offset, &params->data, &consumed);
+    if (rc != TPM_RC_SUCCESS) return rc;
+    offset += consumed;
+
+    // Unmarshal offset
+    rc = Unmarshal_UINT16(buffer + offset, bufferSize - offset, &params->offset, &consumed);
+    if (rc != TPM_RC_SUCCESS) return rc;
+    offset += consumed;
+
+    *bytesRead = offset;
+    qemu_log("[UNMARSHAL] --- End TPM2_NV_Write (read %u bytes) ---\n", *bytesRead);
+    return TPM_RC_SUCCESS;
+}
+
+static inline TPM_RC Unmarshal_NV_Read(
+    const UINT8 *buffer, UINT32 bufferSize,
+    NV_Read_Params *params, UINT32 *bytesRead)
+{
+    if (!buffer || !params || !bytesRead) {
+        return TPM_RC_FAILURE;
+    }
+    
+    TPM_RC rc;
+    UINT32 offset = 0;
+    UINT32 consumed;
+    
+    qemu_log("[UNMARSHAL] --- Begin TPM2_NV_Read ---\n");
+
+    rc = Unmarshal_UINT32(buffer + offset, bufferSize - offset, &params->authHandle, &consumed);
+    if (rc != TPM_RC_SUCCESS) return rc;
+    offset += consumed;
+
+    rc = Unmarshal_UINT32(buffer + offset, bufferSize - offset, &params->nvIndex, &consumed);
+    if (rc != TPM_RC_SUCCESS) return rc;
+    offset += consumed;
+
+    // Skip Auth Session Area (assuming size=0)
+    UINT16 authSize;
+    rc = Unmarshal_UINT16(buffer + offset, bufferSize - offset, &authSize, &consumed);
+    if (rc != TPM_RC_SUCCESS) return rc;
+    offset += consumed;
+    qemu_log("[UNMARSHAL] NV_Read: authSize=%u\n", authSize);
+    if (authSize != 0) return TPM_RC_VALUE;
+
+    // Unmarshal sizeToRead
+    rc = Unmarshal_UINT16(buffer + offset, bufferSize - offset, &params->sizeToRead, &consumed);
+    if (rc != TPM_RC_SUCCESS) return rc;
+    offset += consumed;
+
+    // Unmarshal offset
+    rc = Unmarshal_UINT16(buffer + offset, bufferSize - offset, &params->offset, &consumed);
+    if (rc != TPM_RC_SUCCESS) return rc;
+    offset += consumed;
+
+    *bytesRead = offset;
+    qemu_log("[UNMARSHAL] --- End TPM2_NV_Read (read %u bytes) ---\n", *bytesRead);
     return TPM_RC_SUCCESS;
 }
 

@@ -339,50 +339,50 @@ static inline TPM_RC_MARSH MarshalCommandHeader(
  * @param bytesWritten Pointer to store number of bytes written
  * @return TPM_RC_SUCCESS if successful, error code otherwise
  */
-static inline TPM_RC_MARSH MarshalResponseHeader(
-    UINT8 *buffer,
-    UINT32 bufferSize,
-    const TPM_RSP_HEADER *header,
-    UINT32 *bytesWritten)
-{
-    UINT8 *ptr = buffer;
+// static inline TPM_RC_MARSH MarshalResponseHeader(
+//     UINT8 *buffer,
+//     UINT32 bufferSize,
+//     const TPM_RSP_HEADER *header,
+//     UINT32 *bytesWritten)
+// {
+//     UINT8 *ptr = buffer;
     
-    /* Check buffer size */
-    if (bufferSize < TPM_RSP_HEADER_SIZE) {
-        return TPM_RC_INSUFFICIENT;
-    }
+//     /* Check buffer size */
+//     if (bufferSize < TPM_RSP_HEADER_SIZE) {
+//         return TPM_RC_INSUFFICIENT;
+//     }
     
-    /* Validate header fields */
-    if (UnmarshalResponseTag(header->tag) != TPM_RC_SUCCESS) {
-        return TPM_RC_BAD_TAG;
-    }
+//     /* Validate header fields */
+//     if (UnmarshalResponseTag(header->tag) != TPM_RC_SUCCESS) {
+//         return TPM_RC_BAD_TAG;
+//     }
     
-    if (UnmarshalResponseSize(header->size) != TPM_RC_SUCCESS) {
-        return TPM_RC_SIZE;
-    }
+//     if (UnmarshalResponseSize(header->size) != TPM_RC_SUCCESS) {
+//         return TPM_RC_SIZE;
+//     }
     
-    /* Marshal tag (big-endian) */
-    ptr[0] = (UINT8)(header->tag >> 8);
-    ptr[1] = (UINT8)(header->tag & 0xFF);
-    ptr += 2;
+//     /* Marshal tag (big-endian) */
+//     ptr[0] = (UINT8)(header->tag >> 8);
+//     ptr[1] = (UINT8)(header->tag & 0xFF);
+//     ptr += 2;
     
-    /* Marshal size (big-endian) */
-    ptr[0] = (UINT8)(header->size >> 24);
-    ptr[1] = (UINT8)(header->size >> 16);
-    ptr[2] = (UINT8)(header->size >> 8);
-    ptr[3] = (UINT8)(header->size & 0xFF);
-    ptr += 4;
+//     /* Marshal size (big-endian) */
+//     ptr[0] = (UINT8)(header->size >> 24);
+//     ptr[1] = (UINT8)(header->size >> 16);
+//     ptr[2] = (UINT8)(header->size >> 8);
+//     ptr[3] = (UINT8)(header->size & 0xFF);
+//     ptr += 4;
     
-    /* Marshal response code (big-endian) */
-    ptr[0] = (UINT8)(header->code >> 24);
-    ptr[1] = (UINT8)(header->code >> 16);
-    ptr[2] = (UINT8)(header->code >> 8);
-    ptr[3] = (UINT8)(header->code & 0xFF);
-    ptr += 4;
+//     /* Marshal response code (big-endian) */
+//     ptr[0] = (UINT8)(header->code >> 24);
+//     ptr[1] = (UINT8)(header->code >> 16);
+//     ptr[2] = (UINT8)(header->code >> 8);
+//     ptr[3] = (UINT8)(header->code & 0xFF);
+//     ptr += 4;
     
-    *bytesWritten = (UINT32)(ptr - buffer);
-    return TPM_RC_SUCCESS;
-}
+//     *bytesWritten = (UINT32)(ptr - buffer);
+//     return TPM_RC_SUCCESS;
+// }
 
 /******************************
  * UTILITY FUNCTIONS

@@ -2,8 +2,51 @@
 #define CC_MARSHAL_H
 
 #include <stdint.h>
+#include <string.h>
 #include "../tpm2_base_types.h"
 #include "../tpm2_rc.h"
+#include "../tpm2_interfaces.h"
+
+/******************************
+ * RESPONSE HEADER MARSHALING
+ ******************************/
+
+/**
+ * @brief Marshal TPM response header
+ */
+static inline TPM_RC MarshalResponseHeader(
+    UINT8 *buffer,
+    UINT32 bufferSize,
+    const TPM_RSP_HEADER *header,
+    UINT32 *bytesWritten)
+{
+    if (!buffer || !header || !bytesWritten) {
+        return TPM_RC_FAILURE;
+    }
+    
+    if (bufferSize < TPM_RSP_HEADER_SIZE) {
+        return TPM_RC_INSUFFICIENT;
+    }
+    
+    // Marshal tag (2 bytes, big-endian)
+    buffer[0] = (header->tag >> 8) & 0xFF;
+    buffer[1] = header->tag & 0xFF;
+    
+    // Marshal size (4 bytes, big-endian)
+    buffer[2] = (header->size >> 24) & 0xFF;
+    buffer[3] = (header->size >> 16) & 0xFF;
+    buffer[4] = (header->size >> 8) & 0xFF;
+    buffer[5] = header->size & 0xFF;
+    
+    // Marshal response code (4 bytes, big-endian)
+    buffer[6] = (header->code >> 24) & 0xFF;
+    buffer[7] = (header->code >> 16) & 0xFF;
+    buffer[8] = (header->code >> 8) & 0xFF;
+    buffer[9] = header->code & 0xFF;
+    
+    *bytesWritten = TPM_RSP_HEADER_SIZE;
+    return TPM_RC_SUCCESS;
+}
 
 /******************************
  * BASIC MARSHALING FUNCTIONS
@@ -18,6 +61,10 @@ static inline TPM_RC Marshal_UINT8(
     UINT8 value,
     UINT32 *bytesWritten)
 {
+    if (!buffer || !bytesWritten) {
+        return TPM_RC_FAILURE;
+    }
+    
     if (bufferSize < 1) {
         return TPM_RC_INSUFFICIENT;
     }
@@ -36,6 +83,10 @@ static inline TPM_RC Marshal_UINT16(
     UINT16 value,
     UINT32 *bytesWritten)
 {
+    if (!buffer || !bytesWritten) {
+        return TPM_RC_FAILURE;
+    }
+    
     if (bufferSize < 2) {
         return TPM_RC_INSUFFICIENT;
     }
@@ -55,6 +106,10 @@ static inline TPM_RC Marshal_UINT32(
     UINT32 value,
     UINT32 *bytesWritten)
 {
+    if (!buffer || !bytesWritten) {
+        return TPM_RC_FAILURE;
+    }
+    
     if (bufferSize < 4) {
         return TPM_RC_INSUFFICIENT;
     }
@@ -76,6 +131,10 @@ static inline TPM_RC Marshal_UINT64(
     UINT64 value,
     UINT32 *bytesWritten)
 {
+    if (!buffer || !bytesWritten) {
+        return TPM_RC_FAILURE;
+    }
+    
     if (bufferSize < 8) {
         return TPM_RC_INSUFFICIENT;
     }
@@ -102,6 +161,10 @@ static inline TPM_RC Marshal_TPM2B(
     UINT16 dataSize,
     UINT32 *bytesWritten)
 {
+    if (!buffer || !bytesWritten) {
+        return TPM_RC_FAILURE;
+    }
+    
     TPM_RC rc;
     UINT32 offset = 0;
     UINT32 consumed;
@@ -119,8 +182,8 @@ static inline TPM_RC Marshal_TPM2B(
     }
     
     // Copy data
-    for (UINT16 i = 0; i < dataSize; i++) {
-        buffer[offset + i] = dataBuffer[i];
+    if (dataBuffer && dataSize > 0) {
+        memcpy(buffer + offset, dataBuffer, dataSize);
     }
     offset += dataSize;
     
@@ -142,8 +205,7 @@ static inline TPM_RC Marshal_GetRandom_Response(
     UINT16 randomSize,
     UINT32 *bytesWritten)
 {
-    // Response format:
-    // TPM2B_DIGEST randomBytes
+    // Response format: TPM2B_DIGEST randomBytes
     return Marshal_TPM2B(buffer, bufferSize, randomBytes, randomSize, bytesWritten);
 }
 
@@ -172,6 +234,10 @@ static inline TPM_RC Marshal_CreatePrimary_Response(
     const CreatePrimary_Response *response,
     UINT32 *bytesWritten)
 {
+    if (!buffer || !response || !bytesWritten) {
+        return TPM_RC_FAILURE;
+    }
+    
     TPM_RC rc;
     UINT32 offset = 0;
     UINT32 consumed;
@@ -235,9 +301,62 @@ static inline TPM_RC Marshal_NV_DefineSpace_Response(
     UINT32 bufferSize,
     UINT32 *bytesWritten)
 {
+    (void)buffer;
+    (void)bufferSize;
+    
     // NV_DefineSpace has no response body (just the header with RC)
     *bytesWritten = 0;
     return TPM_RC_SUCCESS;
 }
+
+// Helper to marshal TPM2B_MAX_NV_BUFFER
+static inline TPM_RC Marshal_TPM2B_MAX_NV_BUFFER(
+    UINT8 *buffer, UINT32 bufferSize,
+    const TPM2B_MAX_NV_BUFFER *source, UINT32 *bytesWritten)
+{
+    if (!buffer || !source || !bytesWritten) {
+        return TPM_RC_FAILURE;
+    }
+    
+    TPM_RC rc;
+    UINT32 offset = 0;
+    UINT32 consumed;
+
+    rc = Marshal_UINT16(buffer + offset, bufferSize - offset, source->size, &consumed);
+    if (rc != TPM_RC_SUCCESS) return rc;
+    offset += consumed;
+
+    if (source->size > MAX_NV_BUFFER_SIZE) return TPM_RC_SIZE;
+    if (bufferSize - offset < source->size) return TPM_RC_INSUFFICIENT;
+
+    memcpy(buffer + offset, source->buffer, source->size);
+    offset += source->size;
+
+    *bytesWritten = offset;
+    return TPM_RC_SUCCESS;
+}
+
+
+static inline TPM_RC Marshal_NV_Read_Response(
+    UINT8 *buffer, UINT32 bufferSize,
+    const NV_Read_Response *response, UINT32 *bytesWritten)
+{
+    if (!buffer || !response || !bytesWritten) {
+        return TPM_RC_FAILURE;
+    }
+    
+    TPM_RC rc;
+    UINT32 offset = 0;
+    UINT32 consumed;
+
+    // Marshal data
+    rc = Marshal_TPM2B_MAX_NV_BUFFER(buffer + offset, bufferSize - offset, &response->data, &consumed);
+    if (rc != TPM_RC_SUCCESS) return rc;
+    offset += consumed;
+
+    *bytesWritten = offset;
+    return TPM_RC_SUCCESS;
+}
+
 
 #endif /* CC_MARSHAL_H */

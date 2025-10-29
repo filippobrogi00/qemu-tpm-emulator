@@ -5,6 +5,7 @@
 #include "tpm2_structures.h"
 #include "tpm2_interfaces.h"
 #include "tpm2_device.h"
+#include "tpm2_handles.h"
 #include "qemu/log.h"
 
 #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ##__VA_ARGS__)
@@ -169,6 +170,19 @@ TPM_RC nv_read_decrypt_from_bank(TPM2State *s,
                                  uint8_t *out,
                                  uint16_t len,
                                  uint16_t offset);
+
+TPM_RC tpm2_nv_write(TPM2State *s,
+                    TPM_HANDLE authHandle,
+                    TPM_NV_INDEX nvIndex,
+                    const TPM2B_MAX_NV_BUFFER *data,
+                    UINT16 offset);
+               
+TPM_RC tpm2_nv_read(TPM2State *s,
+                    TPM_HANDLE authHandle,
+                    TPM_NV_INDEX nvIndex,
+                    UINT16 sizeToRead,
+                    UINT16 offset,
+                    TPM2B_MAX_NV_BUFFER *data);
 
 
 #endif // TPM_NV_STRUCTURES_H
