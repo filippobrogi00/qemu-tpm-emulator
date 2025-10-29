@@ -549,132 +549,60 @@ Found ninja-1.11.1 at /usr/bin/ninja
 Running postconf script '/root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 /root/tpm_updated/group7-TPM/temp-qemu/qemu/scripts/symlink-install-tree.py'
 ninja: no work to do.
 /root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/meson introspect --targets --tests --benchmarks | /root/tpm_updated/group7-TPM/temp-qemu/qemu/build/pyvenv/bin/python3 -B scripts/mtest2make.py > Makefile.mtest
-[1/56] Generating qemu-version.h with a custom command (wrapped by meson to capture output)
-[2/44] Generating block.syms with a custom command (wrapped by meson to capture output)
-[3/40] Generating qemu.syms with a custom command (wrapped by meson to capture output)
-[4/40] Compiling C object libcommon.a.p/hw_tpm_tpm_nv.c.o
-In file included from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/qemu/osdep.h:161,
-                 from ../hw/tpm/tpm_nv.c:7:
-/root/tpm_updated/group7-TPM/temp-qemu/qemu/include/glib-compat.h:22: warning: "GLIB_VERSION_MIN_REQUIRED" redefined
-   22 | #define GLIB_VERSION_MIN_REQUIRED GLIB_VERSION_2_66
-      | 
-In file included from /usr/include/glib-2.0/glib/gtypes.h:36,
-                 from /usr/include/glib-2.0/glib/galloca.h:34,
-                 from /usr/include/glib-2.0/glib.h:32,
-                 from ../hw/tpm/tpm_nv.c:5:
-/usr/include/glib-2.0/glib/gversionmacros.h:456: note: this is the location of the previous definition
-  456 | #define GLIB_VERSION_MIN_REQUIRED (GLIB_VERSION_CUR_STABLE)
-      | 
-/root/tpm_updated/group7-TPM/temp-qemu/qemu/include/glib-compat.h:27: warning: "GLIB_VERSION_MAX_ALLOWED" redefined
-   27 | #define GLIB_VERSION_MAX_ALLOWED GLIB_VERSION_2_66
-      | 
-/usr/include/glib-2.0/glib/gversionmacros.h:485: note: this is the location of the previous definition
-  485 | #define GLIB_VERSION_MAX_ALLOWED (GLIB_VERSION_CUR_STABLE)
-      | 
+[1/57] Generating qemu-version.h with a custom command (wrapped by meson to capture output)
+[2/45] Generating block.syms with a custom command (wrapped by meson to capture output)
+[3/41] Generating qemu.syms with a custom command (wrapped by meson to capture output)
+[4/41] Compiling C object libcommon.a.p/hw_tpm_tpm_nv.c.o
+FAILED: libcommon.a.p/hw_tpm_tpm_nv.c.o 
+cc -m64 -Ilibcommon.a.p -Isubprojects/libvduse -I../subprojects/libvduse -I/usr/include/pixman-1 -I/usr/include/libpng16 -I/usr/include/SDL2 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/gio-unix-2.0 -I/usr/include/x86_64-linux-gnu -I/usr/include/webp -fdiagnostics-color=auto -Wall -Winvalid-pch -std=gnu11 -O2 -g -fstack-protector-strong -Wempty-body -Wendif-labels -Wexpansion-to-defined -Wformat-security -Wformat-y2k -Wignored-qualifiers -Wimplicit-fallthrough=2 -Winit-self -Wmissing-format-attribute -Wmissing-prototypes -Wnested-externs -Wold-style-declaration -Wold-style-definition -Wredundant-decls -Wshadow=local -Wstrict-prototypes -Wtype-limits -Wundef -Wvla -Wwrite-strings -Wno-missing-include-dirs -Wno-psabi -Wno-shift-negative-value -isystem /root/tpm_updated/group7-TPM/temp-qemu/qemu/linux-headers -isystem linux-headers -iquote . -iquote /root/tpm_updated/group7-TPM/temp-qemu/qemu -iquote /root/tpm_updated/group7-TPM/temp-qemu/qemu/include -iquote /root/tpm_updated/group7-TPM/temp-qemu/qemu/host/include/x86_64 -iquote /root/tpm_updated/group7-TPM/temp-qemu/qemu/host/include/generic -iquote /root/tpm_updated/group7-TPM/temp-qemu/qemu/tcg/i386 -pthread -mcx16 -msse2 -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-strict-aliasing -fno-common -fwrapv -ftrivial-auto-var-init=zero -fzero-call-used-regs=used-gpr -fPIE -D_REENTRANT -MD -MQ libcommon.a.p/hw_tpm_tpm_nv.c.o -MF libcommon.a.p/hw_tpm_tpm_nv.c.o.d -o libcommon.a.p/hw_tpm_tpm_nv.c.o -c ../hw/tpm/tpm_nv.c
 In file included from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_nv_entry.h:9,
-                 from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_device.h:7,
+                 from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_device.h:8,
                  from ../hw/tpm/tpm_nv.c:10:
 ../hw/tpm/tpm_nv.c: In function ‘nv_entry_alloc’:
 /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_nv.h:10:37: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘size_t’ {aka ‘long unsigned int’} [-Wformat=]
    10 | #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ##__VA_ARGS__)
       |                                     ^~~~~~
-../hw/tpm/tpm_nv.c:70:9: note: in expansion of macro ‘TPM2_LOG’
-   70 |         TPM2_LOG("nv_entry_alloc: NV bank full (need=%u bytes)\n", need);
+../hw/tpm/tpm_nv.c:83:9: note: in expansion of macro ‘TPM2_LOG’
+   83 |         TPM2_LOG("nv_entry_alloc: NV bank full (need=%u bytes)\n", need);
       |         ^~~~~~~~
 /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_nv.h:10:37: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 5 has type ‘size_t’ {aka ‘long unsigned int’} [-Wformat=]
    10 | #define TPM2_LOG(fmt, ...) qemu_log("%s: " fmt, __func__, ##__VA_ARGS__)
       |                                     ^~~~~~
-../hw/tpm/tpm_nv.c:98:5: note: in expansion of macro ‘TPM2_LOG’
-   98 |     TPM2_LOG("nv_entry_alloc: index=0x%08X offset=%zu size=%u\n",
+../hw/tpm/tpm_nv.c:111:5: note: in expansion of macro ‘TPM2_LOG’
+  111 |     TPM2_LOG("nv_entry_alloc: index=0x%08X offset=%zu size=%u\n",
       |     ^~~~~~~~
 ../hw/tpm/tpm_nv.c: In function ‘tpm2_nv_define_space’:
-../hw/tpm/tpm_nv.c:169:5: warning: "/*" within comment [-Wcomment]
-  169 |     /* 2) Validate data size */
-      |      
-../hw/tpm/tpm_nv.c: In function ‘nv_write_crypt_to_bank’:
-../hw/tpm/tpm_nv.c:359:9: warning: implicit declaration of function ‘RAND_bytes’ [-Wimplicit-function-declaration]
-  359 |     if (RAND_bytes(e->iv_ptr, 16) != 1) {
-      |         ^~~~~~~~~~
-../hw/tpm/tpm_nv.c:359:9: warning: nested extern declaration of ‘RAND_bytes’ [-Wnested-externs]
-../hw/tpm/tpm_nv.c:366:18: warning: implicit declaration of function ‘TPM2_AES_CFB_Crypt’ [-Wimplicit-function-declaration]
-  366 |     int outlen = TPM2_AES_CFB_Crypt(s->primary_sensitive.sensitiveArea.sensitive.ecc.buffer,s->primary_sensitive.sensitiveArea.sensitive.ecc.size,
+../hw/tpm/tpm_nv.c:298:3: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  298 |   if (attrs.policyDelete && !impl_supports_undefine_policy_delete (s))
+      |   ^~
+../hw/tpm/tpm_nv.c:302:5: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  302 |     NVEntry *e = nv_entry_alloc(s,index, dataSize, nameAlg, attrs, auth);
+      |     ^~~~~~~
+../hw/tpm/tpm_nv.c: In function ‘TPM2_NV_Write’:
+../hw/tpm/tpm_nv.c:474:22: error: ‘TPM2_MAX_NV_BUFFER_SIZE’ undeclared (first use in this function); did you mean ‘MAX_NV_BUFFER_SIZE’?
+  474 |     if (data->size > TPM2_MAX_NV_BUFFER_SIZE)
+      |                      ^~~~~~~~~~~~~~~~~~~~~~~
+      |                      MAX_NV_BUFFER_SIZE
+../hw/tpm/tpm_nv.c:474:22: note: each undeclared identifier is reported only once for each function it appears in
+../hw/tpm/tpm_nv.c:478:18: warning: implicit declaration of function ‘TPM2_AES_CFB_Crypt’ [-Wimplicit-function-declaration]
+  478 |     int outlen = TPM2_AES_CFB_Crypt(key, keylen,
       |                  ^~~~~~~~~~~~~~~~~~
-../hw/tpm/tpm_nv.c:366:18: warning: nested extern declaration of ‘TPM2_AES_CFB_Crypt’ [-Wnested-externs]
-[5/40] Compiling C object libcommon.a.p/hw_tpm_tpm_crypto.c.o
-../hw/tpm/tpm_crypto.c: In function ‘TPM2_KDFa’:
-../hw/tpm/tpm_crypto.c:79:7: warning: ‘HMAC_CTX_new’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-   79 |       HMAC_CTX *hmac = HMAC_CTX_new ();
-      |       ^~~~~~~~
-In file included from /root/tpm_updated/group7-TPM/temp-qemu/qemu/include/tpm/tpm2_crypto.h:8,
-                 from ../hw/tpm/tpm_crypto.c:1:
-/usr/include/openssl/hmac.h:33:33: note: declared here
-   33 | OSSL_DEPRECATEDIN_3_0 HMAC_CTX *HMAC_CTX_new(void);
-      |                                 ^~~~~~~~~~~~
-../hw/tpm/tpm_crypto.c:84:7: warning: ‘HMAC_Init_ex’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-   84 |       if (!HMAC_Init_ex (hmac, hmacKey, (int)hmacKeyLen, hash, NULL))
-      |       ^~
-/usr/include/openssl/hmac.h:43:27: note: declared here
-   43 | OSSL_DEPRECATEDIN_3_0 int HMAC_Init_ex(HMAC_CTX *ctx, const void *key, int len,
-      |                           ^~~~~~~~~~~~
-../hw/tpm/tpm_crypto.c:86:11: warning: ‘HMAC_CTX_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-   86 |           HMAC_CTX_free (hmac);
-      |           ^~~~~~~~~~~~~
-/usr/include/openssl/hmac.h:35:28: note: declared here
-   35 | OSSL_DEPRECATEDIN_3_0 void HMAC_CTX_free(HMAC_CTX *ctx);
-      |                            ^~~~~~~~~~~~~
-../hw/tpm/tpm_crypto.c:97:7: warning: ‘HMAC_Update’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-   97 |       HMAC_Update (hmac, ctr_be, 4);
-      |       ^~~~~~~~~~~
-/usr/include/openssl/hmac.h:45:27: note: declared here
-   45 | OSSL_DEPRECATEDIN_3_0 int HMAC_Update(HMAC_CTX *ctx, const unsigned char *data,
-      |                           ^~~~~~~~~~~
-../hw/tpm/tpm_crypto.c:102:11: warning: ‘HMAC_Update’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-  102 |           HMAC_Update (hmac, (const uint8_t *)label, strlen (label));
-      |           ^~~~~~~~~~~
-/usr/include/openssl/hmac.h:45:27: note: declared here
-   45 | OSSL_DEPRECATEDIN_3_0 int HMAC_Update(HMAC_CTX *ctx, const unsigned char *data,
-      |                           ^~~~~~~~~~~
-../hw/tpm/tpm_crypto.c:107:7: warning: ‘HMAC_Update’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-  107 |       HMAC_Update (hmac, &zero, 1);
-      |       ^~~~~~~~~~~
-/usr/include/openssl/hmac.h:45:27: note: declared here
-   45 | OSSL_DEPRECATEDIN_3_0 int HMAC_Update(HMAC_CTX *ctx, const unsigned char *data,
-      |                           ^~~~~~~~~~~
-../hw/tpm/tpm_crypto.c:115:7: warning: ‘HMAC_Update’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-  115 |       HMAC_Update (hmac, bits_be, 4);
-      |       ^~~~~~~~~~~
-/usr/include/openssl/hmac.h:45:27: note: declared here
-   45 | OSSL_DEPRECATEDIN_3_0 int HMAC_Update(HMAC_CTX *ctx, const unsigned char *data,
-      |                           ^~~~~~~~~~~
-../hw/tpm/tpm_crypto.c:119:7: warning: ‘HMAC_Final’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-  119 |       HMAC_Final (hmac, hmacBuf, &hmacLen);
-      |       ^~~~~~~~~~
-/usr/include/openssl/hmac.h:47:27: note: declared here
-   47 | OSSL_DEPRECATEDIN_3_0 int HMAC_Final(HMAC_CTX *ctx, unsigned char *md,
-      |                           ^~~~~~~~~~
-../hw/tpm/tpm_crypto.c:120:7: warning: ‘HMAC_CTX_free’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
-  120 |       HMAC_CTX_free (hmac);
-      |       ^~~~~~~~~~~~~
-/usr/include/openssl/hmac.h:35:28: note: declared here
-   35 | OSSL_DEPRECATEDIN_3_0 void HMAC_CTX_free(HMAC_CTX *ctx);
-      |                            ^~~~~~~~~~~~~
-../hw/tpm/tpm_crypto.c:71:16: warning: unused variable ‘hashLen’ [-Wunused-variable]
-   71 |   uint32_t     hashLen         = (uint32_t)EVP_MD_size (hash);
-      |                ^~~~~~~
-../hw/tpm/tpm_crypto.c: In function ‘tpm2_CreatePrimary’:
-../hw/tpm/tpm_crypto.c:364:5: warning: the address of ‘priv’ will always evaluate as ‘true’ [-Waddress]
-  364 | if (!priv) {
-      |     ^
-[6/40] Compiling C object libqemu-arm-softmmu.a.p/hw_arm_nxps32k3x8evb_mcu.c.o
-../hw/arm/nxps32k3x8evb_mcu.c: In function ‘nxps32k3x8evb_mcu_realize’:
-../hw/arm/nxps32k3x8evb_mcu.c:150:5: warning: "/*" within comment [-Wcomment]
-  150 |     /*Modified: 17/10/2025
-      |      
-../hw/arm/nxps32k3x8evb_mcu.c:163:5: warning: "/*" within comment [-Wcomment]
-  163 |     /*
-      |      
-[7/40] Linking target qemu-system-arm
-[8/40] Generating tests/include/QAPI test (include) with a custom command
+../hw/tpm/tpm_nv.c:478:18: warning: nested extern declaration of ‘TPM2_AES_CFB_Crypt’ [-Wnested-externs]
+../hw/tpm/tpm_nv.c:491:22: error: ‘TPMA_NV’ has no member named ‘TPMA_NV_WRITTEN’
+  491 |     e->pub.attributes.TPMA_NV_WRITTEN = 1;
+      |                      ^
+../hw/tpm/tpm_nv.c:477:13: warning: unused variable ‘ciphertext’ [-Wunused-variable]
+  477 |     uint8_t ciphertext[TPM2_MAX_NV_BUFFER_SIZE];
+      |             ^~~~~~~~~~
+ninja: build stopped: subcommand failed.
 arm-none-eabi-ld -T linker.ld startup.o main.o uart.o -o main.elf
 ../qemu/build/qemu-system-arm -M nxps32k3x8evb -nographic -kernel main.elf
 [TPM2_NV_DefineSpace] tag=0x8001 size=12 rc=0x0
+--- TPM Firmware Test Started ---
+All commands are pre-built and properly formatted.
+
+--- TPM Command Menu ---
+1: TPM2_GetRandom (32 bytes)
+2: TPM2_CreatePrimary (RSA 2048 key)
+3: TPM2_NV_DefineSpace (32-byte index)
+Select an option: 

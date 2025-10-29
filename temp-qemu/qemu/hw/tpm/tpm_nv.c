@@ -384,7 +384,7 @@ void tpm2_nv_cleanup(TPM2State *s)
     s->nv_dirty = false;
 }
 
-
+/*
 TPM_RC nv_write_crypt_to_bank(TPM2State *s, NVEntry *e,
                                      const uint8_t *plain, uint16_t len, uint16_t offset)
 {
@@ -419,6 +419,82 @@ TPM_RC nv_write_crypt_to_bank(TPM2State *s, NVEntry *e,
     e->written = true;
     return TPM_RC_SUCCESS;
 }
+*/
+
+TPM_RC TPM2_NV_Write(TPM2State *s,
+                     TPMI_RH_PROVISION  authHandle,
+                     TPM_NV_INDEX nvIndex,
+                     const TPM2B_MAX_NV_BUFFER *data,
+                     UINT16 offset)
+{
+    (void)authHandle; /* full auth checks handled elsewhere */
+
+    if (!s || !data)
+        return TPM_RC_FAILURE;
+
+    NVEntry *e = g_hash_table_lookup(s->nv_map, GUINT_TO_POINTER(nvIndex));
+    if (!e)
+        return TPM_RC_HANDLE;
+
+    TPMA_NV attrs = e->pub.attributes;
+
+    /* ── Transient lock checks ── */
+if (e->writeLocked)
+    return TPM_RC_NV_LOCKED;
+
+/* ── Attribute/type restrictions ── */
+if (attrs.nvType == TPM_NT_COUNTER ||
+    attrs.nvType == TPM_NT_BITS    ||
+    attrs.nvType == TPM_NT_EXTEND)
+    return TPM_RC_ATTRIBUTES;
+
+if ((uint32_t)offset > e->dataLen)
+    return TPM_RC_VALUE;
+
+if ((uint32_t)offset + data->size > e->dataLen)
+    return TPM_RC_NV_RANGE;
+
+/* WriteAll: data size must match entire NV region */
+if (attrs.writeAll && data->size != e->dataLen)
+    return TPM_RC_NV_RANGE;
+
+/* ── Simplified authorization policy ── */
+if (!(attrs.ownerWrite ||
+      attrs.authWrite  ||
+      attrs.policyWrite ||
+      attrs.ppWrite))
+    return TPM_RC_AUTH_FAIL;
+
+/* ── Encryption and NV write ── */
+
+    /* ── Encryption and NV write ── */
+    const uint8_t *key = s->primary_sensitive.sensitiveArea.sensitive.ecc.buffer;
+    int keylen = s->primary_sensitive.sensitiveArea.sensitive.ecc.size;
+
+    if (data->size > MAX_NV_BUFFER_SIZE)
+        return TPM_RC_SIZE;
+
+    uint8_t ciphertext[MAX_NV_BUFFER_SIZE];
+    int outlen = TPM2_AES_CFB_Crypt(key, keylen,
+                                    e->iv_ptr,
+                                    data->buffer, data->size,
+                                    ciphertext, 1 /* encrypt */);
+    if (outlen <= 0)
+        return TPM_RC_FAILURE;
+
+    uint8_t *dst = e->data + offset;
+    if (memcmp(dst, ciphertext, data->size) != 0)
+        memcpy(dst, ciphertext, data->size);
+
+    /* ── Update runtime state ── */
+    e->written = true;
+    e->pub.attributes.written = 1;
+
+    TPM2_LOG("TPM2_NV_Write: idx=0x%X off=%u size=%u written=%d\n",
+             nvIndex, offset, data->size, e->written);
+    return TPM_RC_SUCCESS;
+}
+
 
 
 

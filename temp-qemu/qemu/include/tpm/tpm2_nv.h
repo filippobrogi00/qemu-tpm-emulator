@@ -149,12 +149,20 @@ TPM_RC tpm2_nv_define_space(TPM2State *s,
 
 void tpm2_nv_init(TPM2State *s);
 void tpm2_nv_cleanup(TPM2State *s);
-
+/*
 TPM_RC nv_write_crypt_to_bank(TPM2State *s,
                               struct NVEntry *e,
                               const uint8_t *plain,
                               uint16_t len,
                               uint16_t offset);
+*/
+
+
+TPM_RC TPM2_NV_Write(TPM2State *s,
+                     TPMI_RH_PROVISION  authHandle,
+                     TPM_NV_INDEX nvIndex,
+                     const TPM2B_MAX_NV_BUFFER *data,
+                     UINT16 offset);
 
 TPM_RC nv_read_decrypt_from_bank(TPM2State *s,
                                  struct NVEntry *e,

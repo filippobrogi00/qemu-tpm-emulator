@@ -200,7 +200,7 @@ static void tpm2_test_nv_encrypt_decrypt(TPM2State *s)
     TPM2_LOG("[TEST] Plaintext: %s\n", msg);
 
     /* 2. Encrypt plaintext into NV bank */
-    TPM_RC rc = nv_write_crypt_to_bank(s, e, (const uint8_t *)msg, strlen(msg), 0);
+    TPM_RC rc = TPM2_NV_Write(s, e, (const uint8_t *)msg, strlen(msg), 0);
     TPM2_LOG("[TEST] nv_write_crypt_to_bank rc=0x%X\n", rc);
 
     /* 3. Dump encrypted bytes */
