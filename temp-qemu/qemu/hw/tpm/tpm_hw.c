@@ -928,6 +928,13 @@ static void handle_NV_Read(TPM2State *s, const UINT8 *cmdBody, UINT32 bodySize) 
         build_error_response(s, rc);
         return;
     }
+
+    TPM2_LOG("[NV_READ] decypted plaintext: ");
+        for (UINT16 i = 0; i < params.sizeToRead; i++) {
+        char c = response.data.buffer[i];
+        qemu_log("%c", (c >= 32 && c <= 126) ? c : '.');
+}
+    qemu_log("\n");
     
     build_success_response(s, bytesWritten);
 }
