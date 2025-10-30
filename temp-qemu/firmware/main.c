@@ -142,9 +142,6 @@ static const uint8_t CMD_GET_RANDOM_TOO_BIG[] = {
 /* 3) NV_Read specifying sizeToRead larger than NV index data size
  * Tests:
  *  - Out-of-bounds read / info disclosure (CWE-125, CWE-200)
- * Why:
- *  - sizeToRead = 1024 while many NV indices are small (e.g., 32).
- * Expected safe behavior:
  *  - Return TPM_RC_NV_RANGE and do not leak bytes beyond the NV entry.
  */
 static const uint8_t CMD_NV_READ_OVERSIZE[] = {
@@ -194,8 +191,7 @@ static const uint8_t CMD_NV_WRITE_OVERSIZE[] = {
  * Why:
  *  - If implementation mistakenly does something like qemu_log(e->data) or printf(e->data),
  *    format tokens could be interpreted.
- * Expected safe behavior:
- *  - Implementation treats data as binary and uses safe printing (e.g., printf("%.*s", len, buf) or hex-dump).
+
  */
 static const uint8_t CMD_NV_WRITE_FMT_STR[] = {
     0x80,0x01,
