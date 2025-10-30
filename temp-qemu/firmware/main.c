@@ -372,7 +372,7 @@ void print_menu(void)
 {
     UART_printf("\n--- TPM Command Menu ---\n");
     UART_printf("1: TPM2_GetRandom (32 bytes)\n");
-    UART_printf("2: TPM2_CreatePrimary (RSA 2048 key)\n");
+    UART_printf("2: TPM2_CreatePrimary (ECC P-256 primary storage key)\n");
     UART_printf("3: TPM2_NV_DefineSpace (32-byte index)\n");
     UART_printf("4: TPM2_NV_Write (\"TEST\" to index)\n");
     UART_printf("5: TPM2_NV_Read (4 bytes from index)\n");
