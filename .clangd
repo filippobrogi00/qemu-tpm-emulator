@@ -1,6 +1,0 @@
-CompileFlags:
-  Add: [
-    "-I/Users/pippo/Desktop/CYBERSEC/TPM_Project/temp-qemu/qemu/include",
-    "-I/Users/pippo/Desktop/CYBERSEC/TPM_Project/temp-qemu/qemu/include/hw",
-    "-I/Users/pippo/Desktop/CYBERSEC/TPM_Project/temp-qemu/qemu/hw/tpm"
-  ]
