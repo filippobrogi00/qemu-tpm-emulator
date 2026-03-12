@@ -1,7 +1,7 @@
 # QEMU TPM 2.0 Module
 
 ## Description
-Design and implementation of a generic TPM 2.0 simulation integrated into QEMU, with a focus on Command Chain implementation and Cryptographic Key Management.
+Design and implementation of a generic TPM 2.0 hardware module, emulated using QEMU, with a focus on Command Chain implementation and Cryptographic Key Management.
 
 ### Reference Documentation
 - TCG TPM 2.0 Library Architecture https://trustedcomputinggroup.org/wp-content/uploads/TPM-2.0-1.83-Part-1-Architecture.pdf
