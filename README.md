@@ -46,7 +46,7 @@ The command chain follows the TPM 2.0 specification byte-level protocol:
 
 ## Technical Architecture
 
-1. **Software Simulation Layer** (QEMU side)
+1. **Software Simulation Layer**
    - *Command Parsing Mechanism* — Receives the raw byte stream from the guest firmware, decodes the TPM 2.0 command header (tag, commandSize, commandCode), and dispatches to the appropriate command handler.
    - *State Management* — Maintains internal TPM state: active sessions, loaded objects, hierarchy authorizations, and NV indices — mirroring the state machine of a physical TPM.
    - *Simulated Hardware Interaction* — Exposes a device interface (MMIO registers or virtio transport) through which the guest firmware sends commands and receives responses; manages command/response FIFO and status signaling.
